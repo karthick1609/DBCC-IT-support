@@ -52,26 +52,43 @@
         <div class="card card-stats">
           <div class="card p-3">
             <h6>Total Assets</h6>
-            <h3 id="total-assets">328</h3>
+            <h3 id="total-assets">—</h3>
           </div>
           <div class="card p-3">
             <h6>Open Tickets</h6>
-            <h3 id="open-tickets">14</h3>
+            <h3 id="open-tickets">—</h3>
           </div>
           <div class="card p-3">
             <h6>In Progress</h6>
-            <h3 id="inprogress">7</h3>
+            <h3 id="inprogress">—</h3>
           </div>
           <div class="card p-3">
             <h6>Resolved</h6>
-            <h3 id="resolved">126</h3>
+            <h3 id="resolved">—</h3>
           </div>
         </div>
+        <div id="dashboard-error" class="alert alert-danger d-none" role="alert"></div>
 
       </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/frontend/assets/js/auth.js"></script>
+    <script>
+      DBASCAuth.authorizedFetch('/api/reports?type=dashboard-summary')
+        .then(async response=>{
+          const result=await response.json()
+          if(!response.ok||!result.success) throw new Error(result.message||'Unable to load dashboard.')
+          document.getElementById('total-assets').textContent=result.data.assets_total
+          document.getElementById('open-tickets').textContent=result.data.tickets_by_status.Open||0
+          document.getElementById('inprogress').textContent=result.data.tickets_by_status['In Progress']||0
+          document.getElementById('resolved').textContent=result.data.tickets_by_status.Resolved||0
+        })
+        .catch(error=>{
+          const box=document.getElementById('dashboard-error')
+          box.textContent=error.message
+          box.classList.remove('d-none')
+        })
+    </script>
   </body>
   </html>

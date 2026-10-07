@@ -20,6 +20,40 @@
     localStorage.setItem(AUTH_KEY, JSON.stringify(user))
   }
 
+  async function refreshSession() {
+    const current = getSession()
+    if (!current || !current.refreshToken) {
+      clearSession()
+      throw new Error('Your session has expired. Please sign in again.')
+    }
+
+    const response = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: current.refreshToken })
+    })
+    const result = await readApiResponse(response, 'Refresh session')
+    saveSession(Object.assign({}, current, {
+      accessToken: result.session.access_token,
+      refreshToken: result.session.refresh_token,
+      expiresAt: result.session.expires_at
+    }))
+  }
+
+  async function authorizedFetch(url, options) {
+    let session = getSession()
+    if (!session) throw new Error('Sign in is required.')
+    if (!session.accessToken || !session.expiresAt || session.expiresAt * 1000 < Date.now() + 60000) {
+      await refreshSession()
+      session = getSession()
+    }
+    const requestOptions = Object.assign({}, options || {})
+    const headers = Object.assign({}, requestOptions.headers || {})
+    headers.Authorization = 'Bearer ' + session.accessToken
+    requestOptions.headers = headers
+    return fetch(url, requestOptions)
+  }
+
   function clearSession() {
     localStorage.removeItem(AUTH_KEY)
     localStorage.removeItem('dbasc_role')
@@ -89,7 +123,7 @@
           return readApiResponse(response, 'Sign in')
         })
         .then(function (result) {
-          saveUserSession(result.user)
+          saveUserSession(result.user, result.session)
         })
         .catch(function (error) {
           errorBox.textContent = error.message
@@ -101,14 +135,20 @@
     })
   }
 
-  function saveUserSession(user) {
-    const session = {
+  function saveUserSession(user, authSession) {
+    if (!authSession || !authSession.access_token || !authSession.refresh_token) {
+      throw new Error('Sign-in did not return a valid session. Check Supabase Auth configuration.')
+    }
+    const userSession = {
       email: user.email,
       role: user.role,
       name: user.name,
-      authProvider: 'supabase'
+      authProvider: 'supabase',
+      accessToken: authSession.access_token,
+      refreshToken: authSession.refresh_token,
+      expiresAt: authSession.expires_at
     }
-    saveSession(session)
+    saveSession(userSession)
     localStorage.setItem('dbasc_role', user.role)
     localStorage.setItem('dbasc_theme', 'dark')
     window.location.href = '/frontend/index.html'
@@ -145,7 +185,7 @@
         })
         .then(function (result) {
           if (result.user) {
-            saveUserSession(result.user)
+            saveUserSession(result.user, result.session)
             return
           }
           messageBox.textContent = 'Account created. Check your email for a confirmation link, then sign in.'
@@ -177,6 +217,14 @@
       userLabel.replaceChildren(dot, document.createTextNode(` ${session.name}`))
     }
     if (roleText) roleText.textContent = session.role.toUpperCase()
+    const dashboardLink = document.querySelector('.sidebar a[href="/frontend/admin/dashboard.html"]')
+    if (dashboardLink) {
+      const dashboards = {
+        staff: '/frontend/staff/dashboard.html',
+        principal: '/frontend/principal/dashboard.html'
+      }
+      dashboardLink.href = dashboards[session.role] || '/frontend/admin/dashboard.html'
+    }
 
     const logoutButton = document.getElementById('logout-button')
     if (logoutButton) {
@@ -207,5 +255,5 @@
     bindProtectedPages()
   })
 
-  window.DBASCAuth = { getSession, clearSession }
+  window.DBASCAuth = { getSession, clearSession, authorizedFetch }
 })();

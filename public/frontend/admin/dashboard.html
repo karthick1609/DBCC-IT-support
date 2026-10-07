@@ -18,11 +18,12 @@
         </div>
       </div>
       <div class="row g-3">
-        <div class="col-md-3"><div class="card p-3"><small>Total Assets</small><h4>328</h4></div></div>
-        <div class="col-md-3"><div class="card p-3"><small>Active</small><h4>310</h4></div></div>
-        <div class="col-md-3"><div class="card p-3"><small>Under Repair</small><h4>8</h4></div></div>
-        <div class="col-md-3"><div class="card p-3"><small>Retired</small><h4>10</h4></div></div>
+        <div class="col-md-3"><div class="card p-3"><small>Total Assets</small><h4 id="assets-total">—</h4></div></div>
+        <div class="col-md-3"><div class="card p-3"><small>Open Tickets</small><h4 id="tickets-open">—</h4></div></div>
+        <div class="col-md-3"><div class="card p-3"><small>In Progress</small><h4 id="tickets-progress">—</h4></div></div>
+        <div class="col-md-3"><div class="card p-3"><small>Resolved</small><h4 id="tickets-resolved">—</h4></div></div>
       </div>
+      <div id="dashboard-error" class="alert alert-danger d-none mt-3" role="alert"></div>
 
       <div class="row mt-4">
         <div class="col-lg-6">
@@ -39,12 +40,26 @@
 
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/frontend/assets/js/auth.js"></script>
     <script>
-      const ctxA = document.getElementById('chartAssets').getContext('2d')
-      new Chart(ctxA, {type:'pie',data:{labels:['Desktop','Laptop','Server','Switch','Router','UPS','Printer','Projector'],datasets:[{data:[120,80,10,20,10,5,40,5],backgroundColor:['#0d6efd','#6610f2','#6f42c1','#d63384','#fd7e14','#198754','#20c997','#0dcaf0']}]}})
-
-      const ctxT = document.getElementById('chartTickets').getContext('2d')
-      new Chart(ctxT, {type:'bar',data:{labels:['Open','Assigned','In Progress','Resolved','Closed'],datasets:[{label:'Tickets',data:[14,5,7,126,89],backgroundColor:['#dc3545','#ffc107','#0d6efd','#198754','#6c757d']}]}})
+      DBASCAuth.authorizedFetch('/api/reports?type=dashboard-summary')
+        .then(async response=>{
+          const result=await response.json()
+          if(!response.ok||!result.success) throw new Error(result.message||'Unable to load dashboard.')
+          const data=result.data
+          document.getElementById('assets-total').textContent=data.assets_total
+          const statuses=data.tickets_by_status
+          document.getElementById('tickets-open').textContent=statuses.Open||0
+          document.getElementById('tickets-progress').textContent=statuses['In Progress']||0
+          document.getElementById('tickets-resolved').textContent=statuses.Resolved||0
+          new Chart(document.getElementById('chartAssets'),{type:'doughnut',data:{labels:['Assets'],datasets:[{data:[data.assets_total],backgroundColor:['#0d6efd']}]}})
+          new Chart(document.getElementById('chartTickets'),{type:'bar',data:{labels:Object.keys(statuses),datasets:[{label:'Tickets',data:Object.values(statuses),backgroundColor:'#0d6efd'}]}})
+        })
+        .catch(error=>{
+          const box=document.getElementById('dashboard-error')
+          box.textContent=error.message
+          box.classList.remove('d-none')
+        })
     </script>
   </body>
   </html>

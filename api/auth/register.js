@@ -44,6 +44,11 @@ module.exports = async (req, res) => {
     const result = { success: true }
     if (data.session) {
       result.user = { email, name: fullName, role: 'staff' }
+      result.session = {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        expires_at: data.session.expires_at
+      }
     }
     return res.status(201).json(result)
   } catch (error) {

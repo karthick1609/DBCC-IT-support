@@ -11,14 +11,35 @@
     <div class="topbar"><div class="container-fluid d-flex align-items-center"><h5 class="text-white mb-0">Staff Dashboard</h5></div></div>
     <div class="sidebar"></div>
     <div class="content container-fluid">
-      <h3>Welcome, Staff Member</h3>
+      <h3 id="staff-welcome">Welcome</h3>
       <div class="row g-3">
-        <div class="col-md-3"><div class="card p-3">My Open Tickets<br><strong>2</strong></div></div>
-        <div class="col-md-3"><div class="card p-3">In Progress<br><strong>1</strong></div></div>
-        <div class="col-md-3"><div class="card p-3">Resolved<br><strong>8</strong></div></div>
-        <div class="col-md-3"><div class="card p-3">Closed<br><strong>15</strong></div></div>
+        <div class="col-md-3"><div class="card p-3">My Open Tickets<br><strong id="staff-open">—</strong></div></div>
+        <div class="col-md-3"><div class="card p-3">In Progress<br><strong id="staff-progress">—</strong></div></div>
+        <div class="col-md-3"><div class="card p-3">Resolved<br><strong id="staff-resolved">—</strong></div></div>
+        <div class="col-md-3"><div class="card p-3">Closed<br><strong id="staff-closed">—</strong></div></div>
       </div>
+      <div id="dashboard-error" class="alert alert-danger d-none mt-3" role="alert"></div>
       <div class="mt-4"><a class="btn btn-primary" href="/frontend/staff/create-ticket.html">+ Create New Ticket</a></div>
     </div>
+    <script src="/frontend/assets/js/auth.js"></script>
+    <script>
+      const session=DBASCAuth.getSession()
+      if(session) document.getElementById('staff-welcome').textContent=`Welcome, ${session.name}`
+      DBASCAuth.authorizedFetch('/api/reports?type=dashboard-summary')
+        .then(async response=>{
+          const result=await response.json()
+          if(!response.ok||!result.success) throw new Error(result.message||'Unable to load dashboard.')
+          const statuses=result.data.tickets_by_status
+          document.getElementById('staff-open').textContent=statuses.Open||0
+          document.getElementById('staff-progress').textContent=statuses['In Progress']||0
+          document.getElementById('staff-resolved').textContent=statuses.Resolved||0
+          document.getElementById('staff-closed').textContent=statuses.Closed||0
+        })
+        .catch(error=>{
+          const box=document.getElementById('dashboard-error')
+          box.textContent=error.message
+          box.classList.remove('d-none')
+        })
+    </script>
   </body>
   </html>

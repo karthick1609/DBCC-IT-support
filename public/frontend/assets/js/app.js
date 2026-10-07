@@ -4,8 +4,6 @@ const App = {
   user: null,
 }
 
-function setRole(role){ App.role = role; localStorage.setItem('dbasc_role', role); renderNav(); }
-
 function renderNav(){
   const role = App.role
   document.querySelectorAll('[data-role]').forEach(el=>{
@@ -16,5 +14,4 @@ function renderNav(){
 }
 
 window.App = App
-window.setRole = setRole
 document.addEventListener('DOMContentLoaded', ()=>{ if(document.getElementById('nav-role')) renderNav() })

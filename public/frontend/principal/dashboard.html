@@ -13,22 +13,35 @@
     <div class="content container-fluid">
       <h3>IT Management Overview</h3>
       <div class="row g-3">
-        <div class="col-md-3"><div class="card p-3">Total Assets<br><strong>328</strong></div></div>
-        <div class="col-md-3"><div class="card p-3">Total Tickets<br><strong>254</strong></div></div>
-        <div class="col-md-3"><div class="card p-3">Open Tickets<br><strong>14</strong></div></div>
-        <div class="col-md-3"><div class="card p-3">Resolved<br><strong>126</strong></div></div>
+        <div class="col-md-3"><div class="card p-3">Total Assets<br><strong id="principal-assets">—</strong></div></div>
+        <div class="col-md-3"><div class="card p-3">Total Tickets<br><strong id="principal-tickets">—</strong></div></div>
+        <div class="col-md-3"><div class="card p-3">Open Tickets<br><strong id="principal-open">—</strong></div></div>
+        <div class="col-md-3"><div class="card p-3">Resolved<br><strong id="principal-resolved">—</strong></div></div>
       </div>
+      <div id="dashboard-error" class="alert alert-danger d-none mt-3" role="alert"></div>
       <div class="row mt-4">
         <div class="col-lg-6"><div class="card p-3"><canvas id="chartAssets"></canvas></div></div>
         <div class="col-lg-6"><div class="card p-3"><canvas id="chartDept"></canvas></div></div>
       </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/frontend/assets/js/auth.js"></script>
     <script>
-      const ctxA = document.getElementById('chartAssets').getContext('2d')
-      new Chart(ctxA, {type:'doughnut',data:{labels:['Desktop','Laptop','Server','Printer'],datasets:[{data:[120,80,10,40],backgroundColor:['#0d6efd','#6610f2','#6f42c1','#fd7e14']}]}})
-      const ctxD = document.getElementById('chartDept').getContext('2d')
-      new Chart(ctxD, {type:'bar',data:{labels:['BCA','B.Com','Viscom','Admin','Library'],datasets:[{label:'Tickets',data:[40,30,20,10,15],backgroundColor:'#0d6efd'}]}})
+      Promise.all([
+        DBASCAuth.authorizedFetch('/api/reports?type=dashboard-summary').then(async r=>{const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to load summary.');return d.data}),
+        DBASCAuth.authorizedFetch('/api/reports?type=tickets-by-department').then(async r=>{const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to load departments.');return d.data})
+      ]).then(([summary,departments])=>{
+        document.getElementById('principal-assets').textContent=summary.assets_total
+        document.getElementById('principal-tickets').textContent=summary.tickets_total
+        document.getElementById('principal-open').textContent=summary.tickets_by_status.Open||0
+        document.getElementById('principal-resolved').textContent=summary.tickets_by_status.Resolved||0
+        new Chart(document.getElementById('chartAssets'),{type:'doughnut',data:{labels:['Assets'],datasets:[{data:[summary.assets_total],backgroundColor:['#0d6efd']}]}})
+        new Chart(document.getElementById('chartDept'),{type:'bar',data:{labels:departments.map(d=>d.department_name),datasets:[{label:'Tickets',data:departments.map(d=>d.count),backgroundColor:'#0d6efd'}]}})
+      }).catch(error=>{
+        const box=document.getElementById('dashboard-error')
+        box.textContent=error.message
+        box.classList.remove('d-none')
+      })
     </script>
   </body>
   </html>

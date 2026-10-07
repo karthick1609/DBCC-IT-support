@@ -15,12 +15,7 @@
     Shared.toggleDark(dark)
   }
 
-  Shared.setRole = function(role){ Shared.role = role; ls.setItem('dbasc_role', role); document.querySelectorAll('[data-role]').forEach(el=>{ const allowed = el.getAttribute('data-role').split(','); el.style.display = allowed.includes(role) ? '' : 'none' }) }
-
-  // Mock data
-  Shared.mockAssets = (function(){ const arr=[]; for(let i=1;i<=20;i++) arr.push({asset_code:`DB-PC-${String(i).padStart(4,'0')}`,asset_name:`Desktop ${i}`,category:'Desktop PC',brand:'Dell',model:'OptiPlex',serial:`SN${1000+i}`,location:'Lab 1',assigned_user:'',status:'Active',warranty:'2025-12-31'}); return arr })()
-  Shared.mockTickets = (function(){ const arr=[]; for(let i=1;i<=15;i++) arr.push({ticket_number:`DB-HD-${String(i).padStart(6,'0')}`,title:`Issue ${i}`,requester:`Staff ${i}`,department:'BCA',category:'Network',priority:['Low','Medium','High','Critical'][i%4],status:['Open','Assigned','In Progress','Resolved'][i%4],assigned_to:'Tech 1',created_at:'2026-10-0'+(i%9+1)}); return arr })()
   // Expose to window
   window.Shared = Shared
-  document.addEventListener('DOMContentLoaded', ()=>{ Shared.initTheme(); if(document.getElementById('role-selector')) document.getElementById('role-selector').addEventListener('change', e=>Shared.setRole(e.target.value)) })
+  document.addEventListener('DOMContentLoaded', ()=>{ Shared.initTheme() })
 })()

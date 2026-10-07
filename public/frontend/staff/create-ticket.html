@@ -12,19 +12,45 @@
     <div class="sidebar"></div>
     <div class="content container-fluid">
       <form id="ticketForm" class="card p-3">
-        <div class="mb-3"><label>Title</label><input class="form-control" name="title" required></div>
-        <div class="mb-3"><label>Description</label><textarea class="form-control" name="description" rows="4" required></textarea></div>
+        <div class="mb-3"><label for="ticket-title">Title</label><input id="ticket-title" class="form-control" name="title" maxlength="255" required></div>
+        <div class="mb-3"><label for="ticket-description">Description</label><textarea id="ticket-description" class="form-control" name="description" rows="4" required></textarea></div>
         <div class="row">
-          <div class="col-md-4 mb-3"><label>Category</label><select class="form-select" name="category"><option>Network</option><option>Internet</option></select></div>
+          <div class="col-md-4 mb-3"><label>Category</label><select class="form-select" name="category"><option>Computer</option><option>Network</option><option>Internet</option><option>Wi-Fi</option><option>Printer</option><option>Software</option><option>Windows</option><option>Office</option><option>Projector</option><option>Smart Board</option><option>Server</option><option>Login</option><option>Other</option></select></div>
           <div class="col-md-4 mb-3"><label>Priority</label><select class="form-select" name="priority"><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select></div>
-          <div class="col-md-4 mb-3"><label>Location</label><select class="form-select" name="location"><option>Lab 1</option><option>Lab 2</option></select></div>
+          <div class="col-md-4 mb-3"><label>Location</label><select class="form-select" name="location"><option>Lab 1</option><option>Lab 2</option><option>Lab 3</option><option>Server Room</option><option>Office</option><option>Library</option><option>Principal Room</option></select></div>
         </div>
-        <div class="mb-3"><label>Attachment</label><input type="file" class="form-control" name="attachment"></div>
+        <div id="ticket-message" class="alert d-none" role="alert"></div>
         <div class="d-flex justify-content-end"><button class="btn btn-primary" type="submit">Submit Ticket</button></div>
       </form>
     </div>
+    <script src="/frontend/assets/js/auth.js"></script>
     <script>
-      document.getElementById('ticketForm').addEventListener('submit', e=>{ e.preventDefault(); alert('Ticket DB-HD-000125 created successfully (mock).') })
+      document.getElementById('ticketForm').addEventListener('submit', async event => {
+        event.preventDefault()
+        const form=event.currentTarget
+        const button=form.querySelector('[type="submit"]')
+        const message=document.getElementById('ticket-message')
+        button.disabled=true
+        message.classList.add('d-none')
+        const payload=Object.fromEntries(new FormData(form).entries())
+        try {
+          const response=await DBASCAuth.authorizedFetch('/api/tickets',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(payload)
+          })
+          const result=await response.json()
+          if(!response.ok||!result.success) throw new Error(result.message||'Unable to create ticket.')
+          message.textContent=`Ticket ${result.data.ticket_number} created successfully.`
+          message.className='alert alert-success'
+          form.reset()
+        } catch(error) {
+          message.textContent=error.message
+          message.className='alert alert-danger'
+        } finally {
+          button.disabled=false
+        }
+      })
     </script>
   </body>
   </html>

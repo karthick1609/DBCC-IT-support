@@ -13,10 +13,83 @@
     <div class="content container-fluid">
       <h3>Reports</h3>
       <div class="row g-3">
-        <div class="col-md-4"><div class="card p-3"><h6>Asset Report</h6><p>All assets, exportable.</p><a class="btn btn-sm btn-primary">View Report</a></div></div>
-        <div class="col-md-4"><div class="card p-3"><h6>Tickets by Department</h6><p>Department-wise ticket breakdown.</p><a class="btn btn-sm btn-primary">View Report</a></div></div>
-        <div class="col-md-4"><div class="card p-3"><h6>Warranty Expiry</h6><p>Assets with expiring warranties.</p><a class="btn btn-sm btn-primary">View Report</a></div></div>
+        <div class="col-md-4"><div class="card p-3"><h6>Asset Summary</h6><p>Asset totals by current status.</p><button class="btn btn-sm btn-primary report-button" data-report="assets-summary">View Report</button></div></div>
+        <div class="col-md-4"><div class="card p-3"><h6>Tickets by Department</h6><p>Department-wise ticket breakdown.</p><button class="btn btn-sm btn-primary report-button" data-report="tickets-by-department">View Report</button></div></div>
+        <div class="col-md-4"><div class="card p-3"><h6>Warranty Expiry</h6><p>Assets with warranties expiring in the next 90 days.</p><button class="btn btn-sm btn-primary report-button" data-report="warranty-expiry">View Report</button></div></div>
+      </div>
+      <div id="report-error" class="alert alert-danger d-none mt-3" role="alert"></div>
+      <div class="card p-3 mt-4 d-none" id="report-results">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 id="report-title"></h5>
+          <button id="export-report" class="btn btn-sm btn-outline-primary" type="button">Export CSV</button>
+        </div>
+        <div class="table-responsive"><table class="table table-striped"><thead id="report-head"></thead><tbody id="report-body"></tbody></table></div>
       </div>
     </div>
+    <script src="/frontend/assets/js/auth.js"></script>
+    <script>
+      let reportRows=[]
+      function displayReport(title,rows) {
+        const results=document.getElementById('report-results')
+        const head=document.getElementById('report-head')
+        const body=document.getElementById('report-body')
+        document.getElementById('report-title').textContent=title
+        head.replaceChildren()
+        body.replaceChildren()
+        reportRows=rows
+        if(!rows.length) {
+          body.textContent=''
+          const row=document.createElement('tr')
+          const cell=document.createElement('td')
+          cell.colSpan=4
+          cell.textContent='No records found.'
+          row.append(cell)
+          body.append(row)
+        } else {
+          const keys=Object.keys(rows[0])
+          const headerRow=document.createElement('tr')
+          keys.forEach(key=>{const cell=document.createElement('th');cell.textContent=key.replaceAll('_',' ');headerRow.append(cell)})
+          head.append(headerRow)
+          rows.forEach(record=>{
+            const row=document.createElement('tr')
+            keys.forEach(key=>{const cell=document.createElement('td');cell.textContent=record[key]===null?'—':String(record[key]);row.append(cell)})
+            body.append(row)
+          })
+        }
+        results.classList.remove('d-none')
+      }
+      document.querySelectorAll('.report-button').forEach(button=>button.addEventListener('click',async()=>{
+        const errorBox=document.getElementById('report-error')
+        errorBox.classList.add('d-none')
+        button.disabled=true
+        try {
+          const response=await DBASCAuth.authorizedFetch(`/api/reports?type=${encodeURIComponent(button.dataset.report)}`)
+          const result=await response.json()
+          if(!response.ok||!result.success) throw new Error(result.message||'Unable to load report.')
+          const data=result.data
+          if(button.dataset.report==='assets-summary') {
+            displayReport('Asset Summary',[{total:data.total,...data.by_status}])
+          } else {
+            displayReport(button.textContent.trim(),data)
+          }
+        } catch(error) {
+          errorBox.textContent=error.message
+          errorBox.classList.remove('d-none')
+        } finally {
+          button.disabled=false
+        }
+      }))
+      document.getElementById('export-report').addEventListener('click',()=>{
+        if(!reportRows.length) return
+        const keys=Object.keys(reportRows[0])
+        const escape=value=>`"${String(value??'').replace(/"/g,'""')}"`
+        const csv=[keys.map(escape).join(','),...reportRows.map(row=>keys.map(key=>escape(row[key])).join(','))].join('\r\n')
+        const link=document.createElement('a')
+        link.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}))
+        link.download='dbasc-report.csv'
+        link.click()
+        URL.revokeObjectURL(link.href)
+      })
+    </script>
   </body>
   </html>

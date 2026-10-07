@@ -1,13 +1,20 @@
 const { supabaseService } = require('../../server/supabase')
 const { generateAssetQrData } = require('../../utils/qr')
+const { requireRole } = require('../../server/auth')
 
 module.exports = async (req, res) => {
+  const user = await requireRole(req, res, ['admin', 'principal'])
+  if (!user) return
   const { id } = req.query
   if (!id) return res.status(400).json({ success: false, message: 'Asset id required' })
 
   if (req.method === 'GET') {
     try {
-      const { data, error } = await supabaseService.from('assets').select('*, asset_categories(name)').eq('id', id).single()
+      const { data, error } = await supabaseService
+        .from('assets')
+        .select('*, asset_categories(name), locations(name), departments(name), users(full_name,email)')
+        .eq('id', id)
+        .single()
       if (error) throw error
       res.json({ success: true, data })
     } catch (err) {
@@ -22,6 +29,7 @@ module.exports = async (req, res) => {
       res.status(500).json({ success: false, message: err.message })
     }
   } else {
+    res.setHeader('Allow', 'GET, POST')
     res.status(405).json({ success: false, message: 'Method not allowed' })
   }
 }

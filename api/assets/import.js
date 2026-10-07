@@ -1,29 +1,46 @@
 const { supabaseService } = require('../../server/supabase')
 const csv = require('csv-parse/lib/sync')
+const { requireRole } = require('../../server/auth')
 
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') return res.status(405).json({ success: false, message: 'Method not allowed' })
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST')
+    return res.status(405).json({ success: false, message: 'Method not allowed' })
+  }
+  const user = await requireRole(req, res, ['admin'])
+  if (!user) return
   try {
-    const { csv_text } = req.body
-    if (!csv_text) return res.status(400).json({ success: false, message: 'csv_text required' })
-    const records = csv(csv_text, { columns: true, skip_empty_lines: true })
+    const csvText = typeof (req.body || {}).csv_text === 'string' ? req.body.csv_text : ''
+    if (!csvText) return res.status(400).json({ success: false, message: 'csv_text is required.' })
+    if (csvText.length > 5000000) return res.status(413).json({ success: false, message: 'CSV exceeds the 5 MB limit.' })
+    const records = csv(csvText, { columns: true, skip_empty_lines: true, bom: true })
+    if (!records.length) return res.status(400).json({ success: false, message: 'CSV contains no data rows.' })
     const successes = []
     const failures = []
     const client = supabaseService
     for (const row of records) {
       try {
-        // basic validation
-        if (!row.asset_code || !row.asset_name) throw new Error('Missing required fields')
-        // prevent duplicates by serial or asset_code
-        const { data: exists } = await client.from('assets').select('id').or(`asset_code.eq.${row.asset_code},serial_number.eq.${row.serial_number}`)
-        if (exists && exists.length) { failures.push({ row, reason: 'Duplicate' }); continue }
+        const assetCode = typeof row.asset_code === 'string' ? row.asset_code.trim() : ''
+        const assetName = typeof row.asset_name === 'string' ? row.asset_name.trim() : ''
+        if (!assetCode || !assetName) throw new Error('Missing required asset_code or asset_name.')
+        const { data: existingCode, error: codeError } = await client
+          .from('assets').select('id').eq('asset_code', assetCode).maybeSingle()
+        if (codeError) throw codeError
+        if (existingCode) { failures.push({ row_number: records.indexOf(row) + 2, reason: 'Asset ID already exists.' }); continue }
+        const serialNumber = row.serial_number && row.serial_number.trim()
+        if (serialNumber) {
+          const { data: existingSerial, error: serialError } = await client
+            .from('assets').select('id').eq('serial_number', serialNumber).maybeSingle()
+          if (serialError) throw serialError
+          if (existingSerial) { failures.push({ row_number: records.indexOf(row) + 2, reason: 'Serial number already exists.' }); continue }
+        }
         const payload = {
-          asset_code: row.asset_code,
-          asset_name: row.asset_name,
+          asset_code: assetCode,
+          asset_name: assetName,
           category_id: null,
           brand: row.brand || null,
           model: row.model || null,
-          serial_number: row.serial_number || null,
+          serial_number: serialNumber || null,
           processor: row.processor || null,
           ram: row.ram || null,
           storage: row.storage || null,
@@ -36,10 +53,12 @@ module.exports = async (req, res) => {
           status: row.status || 'Active',
           condition: row.condition || 'Good'
         }
-        const { data, error } = await client.from('assets').insert([payload])
-        if (error) { failures.push({ row, reason: error.message }); continue }
+        const { data, error } = await client.from('assets').insert(payload).select('id,asset_code')
+        if (error) throw error
         successes.push(data[0])
-      } catch (err) { failures.push({ row, reason: err.message }) }
+      } catch (err) {
+        failures.push({ row_number: records.indexOf(row) + 2, reason: err.message })
+      }
     }
     res.json({ success: true, summary: { total: records.length, imported: successes.length, failed: failures.length }, successes, failures })
   } catch (err) {

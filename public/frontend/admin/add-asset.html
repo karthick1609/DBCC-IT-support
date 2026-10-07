@@ -14,8 +14,8 @@
       <form id="addAssetForm" class="card p-3">
         <h4>Basic Information</h4>
         <div class="row">
-          <div class="col-md-4 mb-3"><label class="form-label">Asset ID</label><input class="form-control" name="asset_code"></div>
-          <div class="col-md-4 mb-3"><label class="form-label">Asset Name</label><input class="form-control" name="asset_name"></div>
+          <div class="col-md-4 mb-3"><label class="form-label" for="asset-code">Asset ID</label><input id="asset-code" class="form-control" name="asset_code" required></div>
+          <div class="col-md-4 mb-3"><label class="form-label" for="asset-name">Asset Name</label><input id="asset-name" class="form-control" name="asset_name" required></div>
           <div class="col-md-4 mb-3"><label class="form-label">Category</label><select class="form-select" name="category"><option>Desktop PC</option><option>Laptop</option></select></div>
         </div>
 
@@ -25,6 +25,17 @@
           <div class="col-md-4 mb-3"><label>RAM</label><input class="form-control" name="ram"></div>
           <div class="col-md-4 mb-3"><label>Storage</label><input class="form-control" name="storage"></div>
         </div>
+        <div class="row">
+          <div class="col-md-4 mb-3"><label class="form-label" for="brand">Brand</label><input id="brand" class="form-control" name="brand"></div>
+          <div class="col-md-4 mb-3"><label class="form-label" for="model">Model</label><input id="model" class="form-control" name="model"></div>
+          <div class="col-md-4 mb-3"><label class="form-label" for="serial-number">Serial number</label><input id="serial-number" class="form-control" name="serial_number"></div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 mb-3"><label class="form-label" for="warranty-end">Warranty end</label><input id="warranty-end" class="form-control" name="warranty_end" type="date"></div>
+          <div class="col-md-4 mb-3"><label class="form-label" for="status">Status</label><select id="status" class="form-select" name="status"><option>Active</option><option>In Repair</option><option>Retired</option></select></div>
+          <div class="col-md-4 mb-3"><label class="form-label" for="condition">Condition</label><select id="condition" class="form-select" name="condition"><option>Good</option><option>Fair</option><option>Poor</option></select></div>
+        </div>
+        <div id="asset-message" class="alert d-none" role="alert"></div>
 
         <div class="d-flex justify-content-end mt-3">
           <a class="btn btn-secondary me-2" href="/frontend/admin/assets.html">Cancel</a>
@@ -33,8 +44,34 @@
       </form>
     </div>
 
+    <script src="/frontend/assets/js/auth.js"></script>
     <script>
-      document.getElementById('addAssetForm').addEventListener('submit', e=>{e.preventDefault(); alert('Asset saved (mock).')})
+      document.getElementById('addAssetForm').addEventListener('submit', async event => {
+        event.preventDefault()
+        const form = event.currentTarget
+        const button = form.querySelector('[type="submit"]')
+        const message = document.getElementById('asset-message')
+        button.disabled = true
+        message.classList.add('d-none')
+        const payload = Object.fromEntries(new FormData(form).entries())
+        try {
+          const response = await DBASCAuth.authorizedFetch('/api/assets', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+          })
+          const result = await response.json()
+          if (!response.ok || !result.success) throw new Error(result.message || 'Unable to save asset.')
+          message.textContent = 'Asset saved.'
+          message.className = 'alert alert-success'
+          form.reset()
+        } catch(error) {
+          message.textContent = error.message
+          message.className = 'alert alert-danger'
+        } finally {
+          button.disabled = false
+        }
+      })
     </script>
   </body>
   </html>

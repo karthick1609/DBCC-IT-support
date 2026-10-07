@@ -33,7 +33,12 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      user: { email: profile.email, name: profile.full_name, role: profile.role }
+      user: { email: profile.email, name: profile.full_name, role: profile.role },
+      session: {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        expires_at: data.session.expires_at
+      }
     })
   } catch (error) {
     console.error('Sign-in failed:', error.message)

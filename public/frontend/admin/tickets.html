@@ -19,6 +19,7 @@
         </div>
       </div>
 
+      <div id="tickets-error" class="alert alert-danger d-none" role="alert"></div>
       <table id="tickets-table" class="table table-striped" style="width:100%">
         <thead><tr><th>Ticket ID</th><th>Title</th><th>Requester</th><th>Dept</th><th>Category</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Created</th><th>Actions</th></tr></thead>
         <tbody></tbody>
@@ -26,10 +27,33 @@
     </div>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script src="/frontend/assets/js/auth.js"></script>
     <script>
-      const mockTickets = []
-      for(let i=1;i<=15;i++) mockTickets.push({id:`DB-HD-${String(i).padStart(6,'0')}`,title:`Issue ${i}`,requester:`Staff ${i}`,department:'BCA',category:'Network',priority:['Low','Medium','High','Critical'][i%4],status:['Open','Assigned','In Progress','Resolved'][i%4],assigned:'Tech 1',created:'2026-10-0'+(i%9+1)})
-      $(document).ready(()=>{ $('#tickets-table').DataTable({data:mockTickets,columns:[{data:'id'},{data:'title'},{data:'requester'},{data:'department'},{data:'category'},{data:'priority'},{data:'status'},{data:'assigned'},{data:'created'},{data:null,render:(d)=>`<a class='btn btn-sm btn-primary' href='/frontend/admin/ticket-details.html?id=${d.id}'>View</a>`}]}) })
+      $(document).ready(function(){
+        const table = $('#tickets-table').DataTable({data:[],columns:[
+          {data:'ticket_number'},
+          {data:'title'},
+          {data:'requester.full_name',defaultContent:'—'},
+          {data:'departments.name',defaultContent:'—'},
+          {data:'ticket_categories.name',defaultContent:'—'},
+          {data:'priority'},
+          {data:'status'},
+          {data:null,render:()=> '—'},
+          {data:'created_at'},
+          {data:null,orderable:false,searchable:false,render:ticket=>`<a class="btn btn-sm btn-primary" href="/frontend/admin/ticket-details.html?id=${encodeURIComponent(ticket.id)}">View</a>`}
+        ]})
+        DBASCAuth.authorizedFetch('/api/tickets')
+          .then(async response=>{
+            const result=await response.json()
+            if(!response.ok||!result.success) throw new Error(result.message||'Unable to load tickets.')
+            table.clear().rows.add(result.data||[]).draw()
+          })
+          .catch(error=>{
+            const box=document.getElementById('tickets-error')
+            box.textContent=error.message
+            box.classList.remove('d-none')
+          })
+      })
     </script>
   </body>
   </html>

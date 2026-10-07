@@ -16,10 +16,11 @@
         <h3>IT Assets</h3>
         <div>
           <a class="btn btn-primary" href="/frontend/admin/add-asset.html">Add Asset</a>
-          <button class="btn btn-outline-secondary">Import CSV</button>
+          <a class="btn btn-outline-secondary" href="/frontend/admin/import-csv.html">Import CSV</a>
         </div>
       </div>
 
+      <div id="assets-error" class="alert alert-danger d-none" role="alert"></div>
       <table id="assets-table" class="table table-striped" style="width:100%">
         <thead><tr><th>Asset ID</th><th>Name</th><th>Category</th><th>Brand</th><th>Model</th><th>Serial</th><th>Location</th><th>Assigned</th><th>Status</th><th>Warranty</th><th>Actions</th></tr></thead>
         <tbody></tbody>
@@ -28,13 +29,55 @@
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script src="/frontend/assets/js/auth.js"></script>
     <script>
-      const mockAssets = []
-      for(let i=1;i<=20;i++){
-        mockAssets.push({id:`DB-PC-${String(i).padStart(4,'0')}`,name:`Desktop ${i}`,category:'Desktop PC',brand:'Dell',model:'OptiPlex',serial:`SN${1000+i}`,location:'Lab 1',assigned:'',status:'Active',warranty:'2025-12-31'})
-      }
       $(document).ready(function(){
-        const table = $('#assets-table').DataTable({data:mockAssets,columns:[{data:'id'},{data:'name'},{data:'category'},{data:'brand'},{data:'model'},{data:'serial'},{data:'location'},{data:'assigned'},{data:'status'},{data:'warranty'},{data:null,render:(d)=>`<div class=\"table-actions\"> <a class=\"btn btn-sm btn-primary\" href=\"/frontend/admin/asset-details.html?id=${d.id}\">View</a> <button class=\"btn btn-sm btn-outline-secondary\">QR</button> <button class=\"btn btn-sm btn-danger\">Delete</button></div>`}]} )
+        const table = $('#assets-table').DataTable({data:[],columns:[
+          {data:'asset_code'},
+          {data:'asset_name'},
+          {data:'asset_categories.name',defaultContent:'—'},
+          {data:'brand',defaultContent:'—'},
+          {data:'model',defaultContent:'—'},
+          {data:'serial_number',defaultContent:'—'},
+          {data:'locations.name',defaultContent:'—'},
+          {data:'users.full_name',defaultContent:'—'},
+          {data:'status',defaultContent:'—'},
+          {data:'warranty_end',defaultContent:'—'},
+          {data:null,orderable:false,searchable:false,render:(asset)=>`<div class="table-actions"><a class="btn btn-sm btn-primary" href="/frontend/admin/asset-details.html?id=${encodeURIComponent(asset.id)}">View</a> <button class="btn btn-sm btn-outline-secondary qr-button" data-id="${encodeURIComponent(asset.id)}">QR</button></div>`}
+        ]})
+        DBASCAuth.authorizedFetch('/api/assets')
+          .then(async response => {
+            const result = await response.json()
+            if (!response.ok || !result.success) throw new Error(result.message || 'Unable to load assets.')
+            table.clear().rows.add(result.data || []).draw()
+          })
+          .catch(error => {
+            const errorBox = document.getElementById('assets-error')
+            errorBox.textContent = error.message
+            errorBox.classList.remove('d-none')
+          })
+        $('#assets-table').on('click','.qr-button',async function(){
+          const id = this.dataset.id
+          try {
+            const response = await DBASCAuth.authorizedFetch(`/api/assets/${encodeURIComponent(id)}?action=qr`,{method:'POST'})
+            const result = await response.json()
+            if (!response.ok || !result.success) throw new Error(result.message || 'Unable to create QR code.')
+            const image = new Image()
+            image.src = result.data
+            image.alt = 'Asset QR code'
+            image.style.maxWidth = '100%'
+            const modal = document.createElement('div')
+            modal.className = 'alert alert-light position-fixed top-50 start-50 translate-middle shadow'
+            modal.style.zIndex = '1100'
+            modal.append(image)
+            modal.addEventListener('click',() => modal.remove())
+            document.body.append(modal)
+          } catch(error) {
+            const errorBox = document.getElementById('assets-error')
+            errorBox.textContent = error.message
+            errorBox.classList.remove('d-none')
+          }
+        })
       })
     </script>
   </body>

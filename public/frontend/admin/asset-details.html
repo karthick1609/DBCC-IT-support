@@ -15,36 +15,76 @@
         <div class="col-md-8">
           <div class="card p-3 mb-3">
             <div class="d-flex justify-content-between">
-              <h4 id="asset-id">DB-PC-0001</h4>
-              <div><button class="btn btn-outline-secondary">Download QR</button></div>
+              <h4 id="asset-id">Asset</h4>
+              <div><button id="asset-qr-button" class="btn btn-outline-secondary" type="button">Show QR</button></div>
             </div>
-            <p id="asset-name">Desktop 1</p>
+            <p id="asset-name"></p>
             <div class="row">
-              <div class="col-md-6"><h6>Hardware</h6><p id="hardware">Intel i5, 8GB RAM, 256GB SSD</p></div>
-              <div class="col-md-6"><h6>Network</h6><p id="network">Hostname: pc-001<br>IP: 192.168.1.10</p></div>
+              <div class="col-md-6"><h6>Hardware</h6><p id="hardware"></p></div>
+              <div class="col-md-6"><h6>Network</h6><p id="network"></p></div>
             </div>
           </div>
 
           <div class="card p-3">
             <h5>Asset History</h5>
-            <div class="timeline mt-3">
-              <div><small class="text-muted">07 Oct 2026</small><div>Asset assigned to BCA Lab</div></div>
-              <div class="mt-2"><small class="text-muted">05 Oct 2026</small><div>Location changed to Lab 1</div></div>
-            </div>
+            <div id="asset-history" class="timeline mt-3">No history is recorded for this asset.</div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="card p-3 mb-3 text-center">
             <img src="/frontend/assets/images/asset-placeholder.png" width="100%" alt="asset">
-            <h6 class="mt-2">Status: <span class="badge bg-success">Active</span></h6>
+            <h6 class="mt-2">Status: <span id="asset-status" class="badge bg-secondary">—</span></h6>
           </div>
           <div class="card p-3">
             <h6>QR Code</h6>
-            <div id="qr-code"><img src="https://via.placeholder.com/200" alt="qr"></div>
+            <div id="qr-code" class="text-muted">Use “Show QR” to generate the asset code.</div>
           </div>
         </div>
       </div>
     </div>
+    <div id="asset-error" class="alert alert-danger d-none position-fixed bottom-0 end-0 m-3" role="alert"></div>
+    <script src="/frontend/assets/js/auth.js"></script>
+    <script>
+      const params = new URLSearchParams(location.search)
+      const assetId = params.get('id')
+      const errorBox = document.getElementById('asset-error')
+      function showError(error) {
+        errorBox.textContent = error.message
+        errorBox.classList.remove('d-none')
+      }
+      if (!assetId) {
+        showError(new Error('Asset id is missing.'))
+      } else {
+        DBASCAuth.authorizedFetch(`/api/assets/${encodeURIComponent(assetId)}`)
+          .then(async response => {
+            const result = await response.json()
+            if (!response.ok || !result.success) throw new Error(result.message || 'Unable to load asset.')
+            const asset = result.data
+            document.getElementById('asset-id').textContent = asset.asset_code
+            document.getElementById('asset-name').textContent = asset.asset_name
+            document.getElementById('hardware').textContent = [asset.asset_categories?.name, asset.brand, asset.model, asset.processor, asset.ram, asset.storage].filter(Boolean).join(' · ') || 'No hardware details.'
+            document.getElementById('network').textContent = [asset.hostname, asset.ip_address, asset.mac_address].filter(Boolean).join(' · ') || 'No network details.'
+            document.getElementById('asset-status').textContent = asset.status || 'Unspecified'
+          })
+          .catch(showError)
+      }
+      document.getElementById('asset-qr-button').addEventListener('click', async () => {
+        if (!assetId) return
+        try {
+          const response = await DBASCAuth.authorizedFetch(`/api/assets/${encodeURIComponent(assetId)}?action=qr`, {method:'POST'})
+          const result = await response.json()
+          if (!response.ok || !result.success) throw new Error(result.message || 'Unable to create QR code.')
+          const image = document.createElement('img')
+          image.src = result.data
+          image.alt = 'Asset QR code'
+          image.width = 200
+          const container = document.getElementById('qr-code')
+          container.replaceChildren(image)
+        } catch(error) {
+          showError(error)
+        }
+      })
+    </script>
 
   </body>
   </html>

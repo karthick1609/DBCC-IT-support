@@ -29,8 +29,36 @@ try {
 
   const usersPath = path.join(__dirname, '..', 'public', 'frontend', 'admin', 'users.html')
   const usersHtml = fs.readFileSync(usersPath, 'utf8')
-  if (!usersHtml.includes("fetch('/api/users')") || usersHtml.includes('mockUsers')) {
+  if (!usersHtml.includes("authorizedFetch('/api/users')") || usersHtml.includes('mockUsers')) {
     throw new Error('The users page must load actual registered accounts rather than mock users.')
+  }
+
+  const assetsHtml = fs.readFileSync(path.join(__dirname, '..', 'public', 'frontend', 'admin', 'assets.html'), 'utf8')
+  const ticketsHtml = fs.readFileSync(path.join(__dirname, '..', 'public', 'frontend', 'admin', 'tickets.html'), 'utf8')
+  const createAssetHtml = fs.readFileSync(path.join(__dirname, '..', 'public', 'frontend', 'admin', 'add-asset.html'), 'utf8')
+  const createTicketHtml = fs.readFileSync(path.join(__dirname, '..', 'public', 'frontend', 'staff', 'create-ticket.html'), 'utf8')
+  if (!assetsHtml.includes("authorizedFetch('/api/assets')") || assetsHtml.includes('mockAssets') ||
+      !ticketsHtml.includes("authorizedFetch('/api/tickets')") || ticketsHtml.includes('mockTickets') ||
+      !createAssetHtml.includes("authorizedFetch('/api/assets'") || createAssetHtml.includes('(mock)') ||
+      !createTicketHtml.includes("authorizedFetch('/api/tickets'") || createTicketHtml.includes('(mock)')) {
+    throw new Error('Asset and ticket screens must persist and load data through their protected APIs.')
+  }
+
+  const apiPaths = ['login.js', 'register.js', 'refresh.js'].map(file =>
+    path.join(__dirname, '..', 'api', 'auth', file)
+  )
+  for (const apiPath of apiPaths) {
+    if (!fs.existsSync(apiPath)) throw new Error(`Missing authentication endpoint: ${path.basename(apiPath)}`)
+  }
+
+  const vercelConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'vercel.json'), 'utf8'))
+  if (vercelConfig.builds || vercelConfig.routes) {
+    throw new Error('Vercel should auto-detect API functions and static files instead of routing API paths to static pages.')
+  }
+
+  const reportApi = fs.readFileSync(path.join(__dirname, '..', 'api', 'reports', 'index.js'), 'utf8')
+  if (!reportApi.includes("type === 'dashboard-summary'") || !reportApi.includes("['staff', 'admin', 'principal']")) {
+    throw new Error('The staff dashboard summary API must be available to authenticated staff.')
   }
 
   console.log('Login page validation passed.')
