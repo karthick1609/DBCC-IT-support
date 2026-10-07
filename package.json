@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vercel dev --listen 3000",
     "start": "vercel start",
+    "provision-admin": "node scripts/provision-admin.js",
     "lint": "echo \"No lint configured\"",
     "format": "echo \"No formatter configured\"",
     "test": "node tests/login.test.js"

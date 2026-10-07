@@ -23,7 +23,7 @@ try {
 
   const authPath = path.join(__dirname, '..', 'public', 'frontend', 'assets', 'js', 'auth.js')
   const authScript = fs.readFileSync(authPath, 'utf8')
-  if (!authScript.includes('/api/auth/login') || !authScript.includes('/api/auth/register') || !authScript.includes("authProvider !== 'supabase'") || authScript.includes('Admin@123')) {
+  if (!authScript.includes('/api/auth/login') || !authScript.includes('/api/auth/register') || !authScript.includes("authProvider !== 'supabase'") || !authScript.includes('returned an invalid response') || authScript.includes('Admin@123')) {
     throw new Error('Authentication must use the server API and must not contain demo credentials.')
   }
 

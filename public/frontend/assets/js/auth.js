@@ -55,6 +55,17 @@
     window.location.href = '/frontend/login.html'
   }
 
+  async function readApiResponse(response, action) {
+    let result
+    try {
+      result = await response.json()
+    } catch (error) {
+      throw new Error(`${action} service returned an invalid response (HTTP ${response.status}). Check that Vercel deployed the latest commit and that the /api/auth route is available.`)
+    }
+    if (!response.ok) throw new Error(result.message || `Unable to ${action.toLowerCase()}.`)
+    return result
+  }
+
   function handleLoginSubmit() {
     const form = document.getElementById('login-form')
     if (!form) return
@@ -75,9 +86,7 @@
         body: JSON.stringify({ email: email, password: password })
       })
         .then(async function (response) {
-          const result = await response.json()
-          if (!response.ok) throw new Error(result.message || 'Unable to sign in.')
-          return result
+          return readApiResponse(response, 'Sign in')
         })
         .then(function (result) {
           saveUserSession(result.user)
@@ -132,9 +141,7 @@
         body: JSON.stringify({ fullName: fullName, email: email, password: password })
       })
         .then(async function (response) {
-          const result = await response.json()
-          if (!response.ok) throw new Error(result.message || 'Unable to create your account.')
-          return result
+          return readApiResponse(response, 'Create account')
         })
         .then(function (result) {
           if (result.user) {

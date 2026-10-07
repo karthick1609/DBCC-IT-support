@@ -29,15 +29,17 @@ npm install
 
 5. Users can register from the sign-in page. New registrations receive the `staff` role; create admin or principal profiles through a trusted administrator process.
 
-6. To remove the demo profile rows from an existing database, run `database/remove-demo-users.sql` in the Supabase SQL Editor.
+6. To provision the administrator configured by `ADMIN_EMAIL` and `ADMIN_PASSWORD`, run `npm run provision-admin`. It creates a confirmed Supabase Auth account if one does not exist and assigns its database profile the admin role. If the Auth account already exists, its password is not changed.
 
-7. Start local dev server (Vercel emulates serverless functions)
+7. To remove the demo profile rows from an existing database, run `database/remove-demo-users.sql` in the Supabase SQL Editor.
+
+8. Start local dev server (Vercel emulates serverless functions)
 
 ```powershell
 npx vercel dev
 ```
 
-8. Open http://localhost:3000 and the frontend at `/frontend/index.html`.
+9. Open http://localhost:3000 and the frontend at `/frontend/index.html`.
 
 Troubleshooting:
 - If `vercel dev` is not available, install with `npm i -g vercel`.
