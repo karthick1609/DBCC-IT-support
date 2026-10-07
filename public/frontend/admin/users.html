@@ -14,8 +14,9 @@
     <div class="content container-fluid">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h3>Users</h3>
-        <a class="btn btn-primary">Add User</a>
+        <a class="btn btn-primary" href="/frontend/register.html">Register User</a>
       </div>
+      <div id="users-error" class="alert alert-danger d-none" role="alert"></div>
       <table id="users-table" class="table table-striped" style="width:100%">
         <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody></tbody>
@@ -24,9 +25,35 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
     <script>
-      const mockUsers = []
-      for(let i=1;i<=10;i++) mockUsers.push({name:`User ${i}`,email:`user${i}@example.com`,department:['BCA','B.Com','Viscom'][i%3],role:['staff','admin','principal'][i%3],status:'active'})
-      $(document).ready(()=>{ $('#users-table').DataTable({data:mockUsers,columns:[{data:'name'},{data:'email'},{data:'department'},{data:'role'},{data:'status'},{data:null,render:()=>`<button class='btn btn-sm btn-primary'>View</button>`}]}) })
+      $(document).ready(async function(){
+        try {
+          const response = await fetch('/api/users')
+          const result = await response.json()
+          if (!response.ok || !result.success) throw new Error(result.message || 'Unable to load users.')
+          const users = (result.data || []).map(user => ({
+            name: user.full_name,
+            email: user.email,
+            department: user.department ? user.department.name : '—',
+            role: user.role,
+            status: user.status
+          }))
+          $('#users-table').DataTable({
+            data: users,
+            columns: [
+              { data: 'name' },
+              { data: 'email' },
+              { data: 'department' },
+              { data: 'role' },
+              { data: 'status' },
+              { data: null, orderable: false, searchable: false, render: () => '<span class="text-muted">—</span>' }
+            ]
+          })
+        } catch (error) {
+          const errorBox = document.getElementById('users-error')
+          errorBox.textContent = error.message
+          errorBox.classList.remove('d-none')
+        }
+      })
     </script>
   </body>
   </html>

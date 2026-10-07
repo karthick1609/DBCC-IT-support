@@ -52,16 +52,3 @@ FROM (VALUES
 WHERE NOT EXISTS (
   SELECT 1 FROM ticket_categories existing WHERE existing.name = seed.name
 );
-
--- Demo users
-INSERT INTO users (auth_user_id, employee_id, full_name, email, department_id, role, status)
-SELECT seed.auth_user_id, seed.employee_id, seed.full_name, seed.email,
-       NULL, seed.role, 'active'
-FROM (VALUES
-  ('00000000-0000-0000-0000-000000000001'::uuid, 'EMP001', 'Admin User', 'admin@example.com', 'admin'),
-  ('00000000-0000-0000-0000-000000000002'::uuid, 'EMP002', 'Staff User', 'staff@example.com', 'staff'),
-  ('00000000-0000-0000-0000-000000000003'::uuid, 'EMP003', 'Principal User', 'principal@example.com', 'principal')
-) AS seed(auth_user_id, employee_id, full_name, email, role)
-WHERE NOT EXISTS (
-  SELECT 1 FROM users existing WHERE existing.email = seed.email
-);

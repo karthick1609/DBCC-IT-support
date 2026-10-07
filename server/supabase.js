@@ -12,4 +12,10 @@ if (!SUPABASE_URL) {
 const supabaseAnon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 const supabaseService = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-module.exports = { supabaseAnon, supabaseService }
+function createAuthClient() {
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  })
+}
+
+module.exports = { supabaseAnon, supabaseService, createAuthClient }

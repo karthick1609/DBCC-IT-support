@@ -1,7 +1,7 @@
 // Frontend app helpers and mock data loader
 const App = {
-  role: localStorage.getItem('dbasc_role') || 'admin',
-  user: { name: 'Demo User', email: 'staff@example.com' },
+  role: localStorage.getItem('dbasc_role') || 'staff',
+  user: null,
 }
 
 function setRole(role){ App.role = role; localStorage.setItem('dbasc_role', role); renderNav(); }

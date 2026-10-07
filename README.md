@@ -121,12 +121,9 @@ The application stores and organizes information related to:
 
 This project provides a centralized digital workflow for college IT management. It reduces dependency on manual tracking, improves response time for technical issues, gives better visibility into asset health and utilization, and helps administrators make informed decisions based on real operational data.
 
-## Default Admin Account
+## Accounts
 
-The system includes a default administrative account for first-time use:
-
-- Email: admin@dbcc.edu.in
-- Password: admin123
+Users can create staff accounts from the registration link on the sign-in page. Admin and principal accounts must be provisioned by an administrator; public registration cannot assign elevated roles. Configure Supabase Auth email confirmation and the required Vercel environment variables before deployment.
 
 ## Project Structure
 
