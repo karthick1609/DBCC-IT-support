@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Assets - DBASC IT SUPPORT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link href="/frontend/assets/css/style.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="topbar"><div class="container-fluid d-flex align-items-center"><h5 class="text-white mb-0">Assets</h5></div></div>
+    <div class="sidebar"></div>
+    <div class="content container-fluid">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>IT Assets</h3>
+        <div>
+          <a class="btn btn-primary" href="/frontend/admin/add-asset.html">Add Asset</a>
+          <button class="btn btn-outline-secondary">Import CSV</button>
+        </div>
+      </div>
+
+      <table id="assets-table" class="table table-striped" style="width:100%">
+        <thead><tr><th>Asset ID</th><th>Name</th><th>Category</th><th>Brand</th><th>Model</th><th>Serial</th><th>Location</th><th>Assigned</th><th>Status</th><th>Warranty</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script>
+      const mockAssets = []
+      for(let i=1;i<=20;i++){
+        mockAssets.push({id:`DB-PC-${String(i).padStart(4,'0')}`,name:`Desktop ${i}`,category:'Desktop PC',brand:'Dell',model:'OptiPlex',serial:`SN${1000+i}`,location:'Lab 1',assigned:'',status:'Active',warranty:'2025-12-31'})
+      }
+      $(document).ready(function(){
+        const table = $('#assets-table').DataTable({data:mockAssets,columns:[{data:'id'},{data:'name'},{data:'category'},{data:'brand'},{data:'model'},{data:'serial'},{data:'location'},{data:'assigned'},{data:'status'},{data:'warranty'},{data:null,render:(d)=>`<div class=\"table-actions\"> <a class=\"btn btn-sm btn-primary\" href=\"/frontend/admin/asset-details.html?id=${d.id}\">View</a> <button class=\"btn btn-sm btn-outline-secondary\">QR</button> <button class=\"btn btn-sm btn-danger\">Delete</button></div>`}]} )
+      })
+    </script>
+  </body>
+  </html>

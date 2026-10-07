@@ -1,0 +1,5 @@
+/* Basic Bootstrap override and app styles */
+body { padding-top: 56px; }
+.sidebar { width: 240px; }
+.content { margin-left: 250px; padding: 20px; }
+.card-stats { display:flex; gap:12px; }
