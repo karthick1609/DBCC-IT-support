@@ -1,5 +1,5 @@
 const { supabaseService } = require('../../server/supabase')
-const csv = require('csv-parse/lib/sync')
+const { parse: parseCsv } = require('csv-parse/sync')
 const { requireRole } = require('../../server/auth')
 
 module.exports = async (req, res) => {
@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
     const csvText = typeof (req.body || {}).csv_text === 'string' ? req.body.csv_text : ''
     if (!csvText) return res.status(400).json({ success: false, message: 'csv_text is required.' })
     if (csvText.length > 5000000) return res.status(413).json({ success: false, message: 'CSV exceeds the 5 MB limit.' })
-    const records = csv(csvText, { columns: true, skip_empty_lines: true, bom: true })
+    const records = parseCsv(csvText, { columns: true, skip_empty_lines: true, bom: true })
     if (!records.length) return res.status(400).json({ success: false, message: 'CSV contains no data rows.' })
     const successes = []
     const failures = []
