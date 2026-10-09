@@ -104,6 +104,17 @@ The system supports different levels of access:
 - Admin: manage assets, resolve complaints, review maintenance, process lab requests, add purchase bills, and view reports
 - Principal or management: access high-level dashboards and institutional summary reports
 
+## Role-Based Pages
+
+The signed-in sidebar displays a menu for the current role:
+
+- **Admin:** Dashboard, Assets, Add/Edit Asset, Tickets, Users, Departments, Locations, Reports, Audit Logs, and Settings
+- **Staff:** Dashboard, Create Ticket, My Tickets, Assets, and Profile
+- **Principal:** Dashboard, Asset Overview, Ticket Overview, Reports, and Profile
+- **Common:** Login, Forgot Password, and the 403, 404, and 500 error pages
+
+Asset and ticket detail pages are reached from their corresponding lists. Audit Logs, Settings, Profile, and the Principal overview pages currently provide layouts and navigation only; no new data operations were added for them.
+
 ## Data Managed by the System
 
 The application stores and organizes information related to:

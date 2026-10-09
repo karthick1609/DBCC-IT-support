@@ -21,6 +21,7 @@
 html { scroll-behavior: smooth; }
 
 body {
+  isolation: isolate;
   margin: 0;
   font-family: Inter, "Segoe UI", Roboto, sans-serif;
   background-color: var(--bg);
@@ -32,6 +33,26 @@ body {
     linear-gradient(135deg, var(--surface) 0%, var(--bg) 56%, #f8fbff 100%);
   background-size: 72px 72px, 72px 72px, 72px 72px, auto, auto;
   color: var(--text);
+}
+
+body::before {
+  position: fixed;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  width: min(42vw, 400px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  clip-path: circle(50%);
+  background: url("/frontend/assets/images/college-logo.png") center / cover no-repeat;
+  content: "";
+  opacity: 0.16;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+body > * {
+  position: relative;
 }
 
 body.dark {
@@ -56,6 +77,10 @@ body.dark {
     radial-gradient(ellipse at 85% 0%, rgba(37, 99, 235, 0.14), transparent 38%),
     linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
   background-size: 72px 72px, 72px 72px, 72px 72px, auto, auto;
+}
+
+body.dark::before {
+  opacity: 0.1;
 }
 
 body.dark .topbar {
@@ -106,32 +131,24 @@ a { text-decoration: none; }
 @keyframes college-logo-arrive {
   0% {
     opacity: 0;
-    translate: 0 -42px;
-    scale: 0.62;
-    rotate: -12deg;
-    filter: blur(5px) drop-shadow(0 0 0 rgba(56, 189, 248, 0));
+    scale: 0.12;
+    filter: blur(8px) drop-shadow(0 0 0 rgba(56, 189, 248, 0));
   }
 
   68% {
     opacity: 1;
-    translate: 0 4px;
-    scale: 1.08;
-    rotate: 3deg;
+    scale: 1.12;
     filter: blur(0) drop-shadow(0 0 20px rgba(56, 189, 248, 0.9));
     box-shadow: 0 0 30px rgba(56, 189, 248, 0.62), 0 8px 24px rgba(31, 61, 105, 0.2);
   }
 
   84% {
-    translate: 0 -2px;
     scale: 0.98;
-    rotate: -1deg;
   }
 
   100% {
     opacity: 1;
-    translate: 0 0;
     scale: 1;
-    rotate: 0;
     filter: blur(0) drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));
     box-shadow: 0 0 16px rgba(56, 189, 248, 0.35), 0 8px 24px rgba(31, 61, 105, 0.16);
   }
@@ -173,6 +190,25 @@ a { text-decoration: none; }
   border-radius: 22px;
   background: var(--panel);
   box-shadow: var(--shadow);
+}
+
+.auth-card.auth-reset-card {
+  display: block;
+  width: min(100%, 560px);
+}
+
+.auth-reset-card .auth-brand {
+  min-height: 0;
+  gap: 10px;
+  padding: 28px 30px;
+}
+
+.auth-reset-card .auth-brand-label {
+  margin-bottom: 0;
+}
+
+.auth-reset-card .auth-card-body {
+  padding: 32px;
 }
 
 .auth-brand {
@@ -628,6 +664,10 @@ body.auth-login-page {
   padding: 92px 24px 28px;
 }
 
+.content.container-fluid {
+  width: auto;
+}
+
 .content .container-fluid {
   max-width: 1400px;
 }
@@ -985,12 +1025,17 @@ body:not(.dark) .btn-close {
     padding: 0 14px;
   }
 
+  .topbar #welcome-user {
+    display: none;
+  }
+
   .topbar-left small {
     display: none;
   }
 
   .sidebar {
     position: static;
+    margin-top: 68px;
     width: 100%;
     height: auto;
     border-right: none;
@@ -1000,7 +1045,7 @@ body:not(.dark) .btn-close {
 
   .content {
     margin-left: 0;
-    padding-top: 86px;
+    padding: 18px 24px 28px;
   }
 
   .card-stats {
@@ -1032,7 +1077,7 @@ body:not(.dark) .btn-close {
   }
 
   .content {
-    padding: 90px 14px 20px;
+    padding: 18px 14px 20px;
   }
 
   .network-hero {

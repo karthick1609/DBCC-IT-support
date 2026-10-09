@@ -94,6 +94,114 @@
     window.location.href = '/frontend/login.html'
   }
 
+  function renderRoleNavigation(session) {
+    const sidebar = document.querySelector('.sidebar')
+    if (!sidebar) return
+
+    const dashboards = {
+      admin: '/frontend/admin/dashboard.html',
+      staff: '/frontend/staff/dashboard.html',
+      principal: '/frontend/principal/dashboard.html'
+    }
+    const common = [
+      { label: 'Dashboard', href: dashboards[session.role], icon: 'speedometer2' }
+    ]
+    const navigation = {
+      admin: [
+        ...common,
+        { label: 'Assets', href: '/frontend/admin/assets.html', icon: 'pc-display' },
+        { label: 'Add/Edit Asset', href: '/frontend/admin/add-asset.html', icon: 'pc' },
+        { label: 'Tickets', href: '/frontend/admin/tickets.html', icon: 'ticket-detailed' },
+        { label: 'Users', href: '/frontend/admin/users.html', icon: 'people' },
+        { label: 'Departments', href: '/frontend/admin/departments.html', icon: 'diagram-3' },
+        { label: 'Locations', href: '/frontend/admin/locations.html', icon: 'geo-alt' },
+        { label: 'Reports', href: '/frontend/admin/reports.html', icon: 'graph-up-arrow' },
+        { label: 'Audit Logs', href: '/frontend/admin/audit-logs.html', icon: 'journal-text' },
+        { label: 'Settings', href: '/frontend/admin/settings.html', icon: 'gear' }
+      ],
+      staff: [
+        ...common,
+        { label: 'Create Ticket', href: '/frontend/staff/create-ticket.html', icon: 'plus-circle' },
+        { label: 'My Tickets', href: '/frontend/admin/tickets.html', icon: 'ticket-detailed' },
+        { label: 'Assets', href: '/frontend/admin/assets.html', icon: 'pc-display' },
+        { label: 'Profile', href: '/frontend/staff/profile.html', icon: 'person' }
+      ],
+      principal: [
+        ...common,
+        { label: 'Asset Overview', href: '/frontend/principal/asset-overview.html', icon: 'pc-display' },
+        { label: 'Ticket Overview', href: '/frontend/principal/ticket-overview.html', icon: 'ticket-detailed' },
+        { label: 'Reports', href: '/frontend/admin/reports.html', icon: 'graph-up-arrow' },
+        { label: 'Profile', href: '/frontend/principal/profile.html', icon: 'person' }
+      ]
+    }
+
+    const header = document.createElement('div')
+    header.className = 'sidebar-header'
+    const heading = document.createElement('h6')
+    heading.textContent = 'Menu'
+    header.append(heading)
+
+    const list = document.createElement('ul')
+    list.className = 'nav flex-column'
+    const currentPath = window.location.pathname
+    ;(navigation[session.role] || []).forEach(item => {
+      const entry = document.createElement('li')
+      entry.className = 'nav-item'
+      const link = document.createElement('a')
+      link.className = 'nav-link'
+      link.href = item.href
+      if (currentPath === item.href) {
+        link.classList.add('active')
+        link.setAttribute('aria-current', 'page')
+      }
+      const icon = document.createElement('i')
+      icon.className = `bi bi-${item.icon}`
+      icon.setAttribute('aria-hidden', 'true')
+      link.append(icon, document.createTextNode(item.label))
+      entry.append(link)
+      list.append(entry)
+    })
+    sidebar.replaceChildren(header, list)
+  }
+
+  function setupProtectedTopbar(session) {
+    const topbar = document.querySelector('.topbar')
+    if (!topbar || topbar.querySelector('#logout-button')) return
+
+    const topbarContent = topbar.querySelector('.container-fluid') || topbar
+    topbarContent.classList.add('justify-content-between')
+    const controls = document.createElement('div')
+    controls.className = 'topbar-right'
+
+    const welcome = document.createElement('div')
+    welcome.className = 'user-pill'
+    welcome.id = 'welcome-user'
+    const dot = document.createElement('span')
+    dot.className = 'user-dot'
+    welcome.append(dot, document.createTextNode(` ${session.name}`))
+
+    const role = document.createElement('div')
+    role.className = 'user-pill'
+    role.append(document.createTextNode('Role: '))
+    const roleName = document.createElement('strong')
+    roleName.id = 'nav-role'
+    roleName.textContent = session.role.toUpperCase()
+    role.append(roleName)
+
+    const theme = document.createElement('button')
+    theme.className = 'theme-toggle'
+    theme.id = 'theme-toggle'
+    theme.type = 'button'
+
+    const logout = document.createElement('button')
+    logout.className = 'logout-btn'
+    logout.id = 'logout-button'
+    logout.type = 'button'
+    logout.innerHTML = '<i class="bi bi-box-arrow-right" aria-hidden="true"></i> Logout'
+    controls.append(welcome, role, theme, logout)
+    topbarContent.append(controls)
+  }
+
   async function readApiResponse(response, action) {
     let result
     try {
@@ -151,14 +259,17 @@
     const recoveryEmail = document.getElementById('recovery-email')
     const messageBox = document.getElementById('recovery-message')
 
-    showRecovery.addEventListener('click', function () {
+    function openRecovery() {
       recoveryEmail.value = emailInput.value.trim()
       loginForm.classList.add('d-none')
       showRecovery.classList.add('d-none')
       recoveryForm.classList.remove('d-none')
       document.getElementById('login-error').classList.add('d-none')
       recoveryEmail.focus()
-    })
+    }
+
+    showRecovery.addEventListener('click', openRecovery)
+    if (window.location.hash === '#forgot-password') openRecovery()
 
     backToLogin.addEventListener('click', function () {
       recoveryForm.classList.add('d-none')
@@ -363,14 +474,8 @@
       userLabel.replaceChildren(dot, document.createTextNode(` ${session.name}`))
     }
     if (roleText) roleText.textContent = session.role.toUpperCase()
-    const dashboardLink = document.querySelector('.sidebar a[href="/frontend/admin/dashboard.html"]')
-    if (dashboardLink) {
-      const dashboards = {
-        staff: '/frontend/staff/dashboard.html',
-        principal: '/frontend/principal/dashboard.html'
-      }
-      dashboardLink.href = dashboards[session.role] || '/frontend/admin/dashboard.html'
-    }
+    renderRoleNavigation(session)
+    setupProtectedTopbar(session)
 
     const logoutButton = document.getElementById('logout-button')
     if (logoutButton) {

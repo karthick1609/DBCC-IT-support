@@ -4,22 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "node server/dev.js",
-    "start": "vercel start",
+    "start": "node server/dev.js",
     "provision-admin": "node scripts/provision-admin.js",
     "lint": "echo \"No lint configured\"",
     "format": "echo \"No formatter configured\"",
-    "test": "node tests/login.test.js && node tests/auth.test.js && node tests/password-reset.test.js && node tests/users.test.js && node tests/registration.test.js"
+    "test": "node tests/login.test.js && node tests/auth.test.js && node tests/password-reset.test.js && node tests/users.test.js && node tests/registration.test.js && node tests/role-pages.test.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "dotenv": "^16.0.3",
-    "uuid": "^9.0.0",
-    "qrcode": "^1.5.1",
     "@supabase/supabase-js": "^2.32.0",
+    "csv-parse": "^5.4.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "qrcode": "^1.5.1",
     "resend": "^1.0.0",
-    "csv-parse": "^5.4.0"
-  },
-  "devDependencies": {
-    "vercel": "^28.0.0"
+    "uuid": "^9.0.0"
   }
 }
