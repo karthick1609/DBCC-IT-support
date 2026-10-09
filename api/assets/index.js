@@ -3,14 +3,17 @@ const { requireRole } = require('../../server/auth')
 
 module.exports = async (req, res) => {
   if (req.method === 'GET') {
-    const user = await requireRole(req, res, ['admin', 'principal'])
+    const user = await requireRole(req, res, ['admin', 'principal', 'staff'])
     if (!user) return
     const { page = 1, per_page = 20, search = '' } = req.query
     const pageNumber = Math.max(1, Number.parseInt(page, 10) || 1)
     const pageSize = Math.min(100, Math.max(1, Number.parseInt(per_page, 10) || 20))
     const offset = (pageNumber - 1) * pageSize
     try {
-      let query = supabaseService.from('assets').select('*, asset_categories(name), locations(name), departments(name), users(full_name)').order('created_at', { ascending: false }).range(offset, offset + pageSize - 1)
+      const columns = user.profile.role === 'staff'
+        ? 'id,asset_code,asset_name,status,asset_categories(name),locations(name)'
+        : '*, asset_categories(name), locations(name), departments(name), users(full_name)'
+      let query = supabaseService.from('assets').select(columns).order('created_at', { ascending: false }).range(offset, offset + pageSize - 1)
       if (search) query = query.ilike('asset_name', `%${search.replace(/[%_]/g, '')}%`)
       const { data, error } = await query
       if (error) throw error

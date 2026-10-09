@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My Tickets - DBASC IT SUPPORT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/frontend/assets/css/style.css?v=college-logo-18" rel="stylesheet">
+  </head>
+  <body>
+    <div class="topbar"><div class="container-fluid d-flex align-items-center"><h5 class="text-white mb-0">My Tickets</h5></div></div>
+    <div class="sidebar"></div>
+    <main class="content container-fluid">
+      <div class="network-hero page-header">
+        <div>
+          <span class="network-eyebrow"><span class="user-dot"></span> STAFF / SERVICE DESK</span>
+          <h2>My Tickets</h2>
+          <p>Review the support requests you have submitted.</p>
+        </div>
+        <a class="btn btn-primary" href="/frontend/staff/create-ticket.html"><i class="bi bi-plus-circle me-1"></i> Create Ticket</a>
+      </div>
+      <div id="staff-tickets-error" class="alert alert-danger d-none" role="alert"></div>
+      <section class="card p-3">
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead><tr><th>Ticket</th><th>Title</th><th>Priority</th><th>Status</th><th>Created</th><th>Details</th></tr></thead>
+            <tbody id="staff-tickets-body"><tr><td colspan="6" class="text-muted text-center py-4">Loading your tickets…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <script src="/frontend/assets/js/auth.js?v=role-pages-2"></script>
+    <script>
+      async function loadMyTickets() {
+        const body = document.getElementById('staff-tickets-body')
+        const errorBox = document.getElementById('staff-tickets-error')
+        try {
+          const response = await DBASCAuth.authorizedFetch('/api/tickets')
+          const result = await response.json()
+          if (!response.ok || !result.success) throw new Error(result.message || 'Unable to load your tickets.')
+          const tickets = result.data || []
+          body.replaceChildren()
+          if (!tickets.length) {
+            const row = body.insertRow()
+            const cell = row.insertCell()
+            cell.colSpan = 6
+            cell.className = 'text-muted text-center py-4'
+            cell.textContent = 'You have not submitted any tickets yet.'
+            return
+          }
+          tickets.forEach(ticket => {
+            const row = body.insertRow()
+            const status = ticket.status === 'Resolved' ? 'Completed' : ticket.status
+            ;[ticket.ticket_number, ticket.title, ticket.priority, status, ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : '—'].forEach(value => {
+              row.insertCell().textContent = value || '—'
+            })
+            const action = row.insertCell()
+            const link = document.createElement('a')
+            link.className = 'btn btn-sm btn-primary'
+            link.href = `/frontend/admin/ticket-details.html?id=${encodeURIComponent(ticket.id)}`
+            link.textContent = 'View'
+            action.append(link)
+          })
+        } catch (error) {
+          errorBox.textContent = error.message
+          errorBox.classList.remove('d-none')
+          body.replaceChildren()
+          const row = body.insertRow()
+          const cell = row.insertCell()
+          cell.colSpan = 6
+          cell.className = 'text-muted text-center py-4'
+          cell.textContent = 'Ticket list could not be loaded.'
+        }
+      }
+      loadMyTickets()
+    </script>
+    <script src="/frontend/assets/js/logo.js?v=1"></script>
+  </body>
+</html>

@@ -8,7 +8,7 @@
     "provision-admin": "node scripts/provision-admin.js",
     "lint": "echo \"No lint configured\"",
     "format": "echo \"No formatter configured\"",
-    "test": "node tests/login.test.js && node tests/auth.test.js && node tests/password-reset.test.js && node tests/users.test.js && node tests/registration.test.js && node tests/role-pages.test.js"
+    "test": "node tests/login.test.js && node tests/auth.test.js && node tests/password-reset.test.js && node tests/users.test.js && node tests/registration.test.js && node tests/role-pages.test.js && node tests/assets.test.js && node tests/ticket-status.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.32.0",

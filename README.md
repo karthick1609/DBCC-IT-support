@@ -109,11 +109,13 @@ The system supports different levels of access:
 The signed-in sidebar displays a menu for the current role:
 
 - **Admin:** Dashboard, Assets, Add/Edit Asset, Tickets, Users, Departments, Locations, Reports, Audit Logs, and Settings
-- **Staff:** Dashboard, Create Ticket, My Tickets, Assets, and Profile
+- **Staff:** Dashboard, Create Ticket, My Tickets, Assets overview, and Profile
 - **Principal:** Dashboard, Asset Overview, Ticket Overview, Reports, and Profile
 - **Common:** Login, Forgot Password, and the 403, 404, and 500 error pages
 
-Asset and ticket detail pages are reached from their corresponding lists. Audit Logs, Settings, Profile, and the Principal overview pages currently provide layouts and navigation only; no new data operations were added for them.
+Asset and ticket detail pages are reached from their corresponding lists. Audit Logs, Settings, Profile, and the Principal overview pages currently provide layouts and navigation only. Staff asset browsing is read-only, and the ticket list shows tickets submitted by the signed-in staff member.
+
+Administrators can accept open tickets to move them to **In Progress**, then mark in-progress tickets **Completed**. Staff can see the updated status in My Tickets and on their dashboard.
 
 ## Data Managed by the System
 

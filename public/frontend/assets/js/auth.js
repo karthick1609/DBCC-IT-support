@@ -94,6 +94,75 @@
     window.location.href = '/frontend/login.html'
   }
 
+  function getDashboardPath(role) {
+    const dashboards = {
+      admin: '/frontend/admin/dashboard.html',
+      staff: '/frontend/staff/dashboard.html',
+      principal: '/frontend/principal/dashboard.html'
+    }
+    return dashboards[role] || '/frontend/login.html'
+  }
+
+  const PAGE_ROLES = {
+    '/frontend/admin/dashboard.html': ['admin'],
+    '/frontend/admin/assets.html': ['admin'],
+    '/frontend/admin/asset-details.html': ['admin'],
+    '/frontend/admin/add-asset.html': ['admin'],
+    '/frontend/admin/import-csv.html': ['admin'],
+    '/frontend/admin/tickets.html': ['admin'],
+    '/frontend/admin/ticket-details.html': ['admin', 'staff'],
+    '/frontend/admin/users.html': ['admin'],
+    '/frontend/admin/departments.html': ['admin'],
+    '/frontend/admin/locations.html': ['admin'],
+    '/frontend/admin/reports.html': ['admin', 'principal'],
+    '/frontend/admin/audit-logs.html': ['admin'],
+    '/frontend/admin/settings.html': ['admin'],
+    '/frontend/staff/dashboard.html': ['staff'],
+    '/frontend/staff/create-ticket.html': ['staff'],
+    '/frontend/staff/my-tickets.html': ['staff'],
+    '/frontend/staff/assets.html': ['staff'],
+    '/frontend/staff/profile.html': ['staff'],
+    '/frontend/principal/dashboard.html': ['principal'],
+    '/frontend/principal/asset-overview.html': ['principal'],
+    '/frontend/principal/ticket-overview.html': ['principal'],
+    '/frontend/principal/profile.html': ['principal']
+  }
+
+  function enforcePageAccess() {
+    const path = window.location.pathname
+    const session = getSession()
+
+    if (path === '/frontend/login.html' || path === '/frontend/register.html') {
+      if (session) window.location.replace(getDashboardPath(session.role))
+      return !session
+    }
+
+    if (path === '/frontend/index.html') {
+      window.location.replace(session ? getDashboardPath(session.role) : '/frontend/login.html')
+      return false
+    }
+
+    const allowedRoles = PAGE_ROLES[path]
+    if (allowedRoles) {
+      if (!session) {
+        window.location.replace('/frontend/login.html')
+        return false
+      }
+      if (!allowedRoles.includes(session.role)) {
+        window.location.replace('/frontend/error-403.html')
+        return false
+      }
+      return true
+    }
+
+    if (path.startsWith('/frontend/admin/') || path.startsWith('/frontend/staff/') ||
+        path.startsWith('/frontend/principal/')) {
+      window.location.replace('/frontend/error-403.html')
+      return false
+    }
+    return true
+  }
+
   function renderRoleNavigation(session) {
     const sidebar = document.querySelector('.sidebar')
     if (!sidebar) return
@@ -122,8 +191,8 @@
       staff: [
         ...common,
         { label: 'Create Ticket', href: '/frontend/staff/create-ticket.html', icon: 'plus-circle' },
-        { label: 'My Tickets', href: '/frontend/admin/tickets.html', icon: 'ticket-detailed' },
-        { label: 'Assets', href: '/frontend/admin/assets.html', icon: 'pc-display' },
+        { label: 'My Tickets', href: '/frontend/staff/my-tickets.html', icon: 'ticket-detailed' },
+        { label: 'Assets overview', href: '/frontend/staff/assets.html', icon: 'pc-display' },
         { label: 'Profile', href: '/frontend/staff/profile.html', icon: 'person' }
       ],
       principal: [
@@ -460,6 +529,7 @@
   }
 
   function bindProtectedPages() {
+    if (!enforcePageAccess()) return
     const session = getSession()
     if (!session) {
       redirectToLogin()
@@ -494,7 +564,7 @@
     if (loginForm || registerForm) {
       const session = getSession()
       if (session) {
-        window.location.href = '/frontend/index.html'
+        window.location.replace(getDashboardPath(session.role))
         return
       }
       if (loginForm) {
@@ -517,5 +587,6 @@
     bindProtectedPages()
   })
 
+  enforcePageAccess()
   window.DBASCAuth = { getSession, clearSession, authorizedFetch }
 })();

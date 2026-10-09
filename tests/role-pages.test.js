@@ -61,7 +61,15 @@ function renderNavigation(role) {
       storage.delete(key)
     }
   }
-  const window = { location: { pathname: '/frontend/admin/dashboard.html' } }
+  const dashboards = {
+    admin: '/frontend/admin/dashboard.html',
+    staff: '/frontend/staff/dashboard.html',
+    principal: '/frontend/principal/dashboard.html'
+  }
+  const window = { location: { pathname: dashboards[role] } }
+  window.location.replace = url => {
+    window.location.redirectedTo = url
+  }
 
   vm.runInNewContext(authScript, { document, localStorage, window, fetch() {} })
   assert.strictEqual(typeof readyCallback, 'function', 'auth script should register its page initializer')
@@ -78,6 +86,35 @@ function renderNavigation(role) {
   })
 }
 
+function getRedirect(role, pathname) {
+  const session = role
+    ? { authProvider: 'supabase', name: 'Test User', role, accessToken: 'test-token', expiresAt: Math.floor(Date.now() / 1000) + 3600 }
+    : null
+  const storage = new Map()
+  if (session) storage.set('dbasc_session', JSON.stringify(session))
+  const document = {
+    body: { classList: { toggle() {} } },
+    addEventListener() {},
+    getElementById() {
+      return null
+    },
+    querySelector() {
+      return null
+    }
+  }
+  const window = { location: { pathname, replace(url) { this.redirectedTo = url } } }
+  const localStorage = {
+    getItem(key) {
+      return storage.get(key) || null
+    },
+    removeItem(key) {
+      storage.delete(key)
+    }
+  }
+  vm.runInNewContext(authScript, { document, localStorage, window, fetch() {} })
+  return window.location.redirectedTo || null
+}
+
 try {
   const menus = {
     admin: renderNavigation('admin'),
@@ -88,7 +125,7 @@ try {
 
   for (const [role, expected] of Object.entries({
     admin: ['Dashboard', 'Assets', 'Add/Edit Asset', 'Tickets', 'Users', 'Departments', 'Locations', 'Reports', 'Audit Logs', 'Settings'],
-    staff: ['Dashboard', 'Create Ticket', 'My Tickets', 'Assets', 'Profile'],
+    staff: ['Dashboard', 'Create Ticket', 'My Tickets', 'Assets overview', 'Profile'],
     principal: ['Dashboard', 'Asset Overview', 'Ticket Overview', 'Reports', 'Profile']
   })) {
     assert.deepStrictEqual(labels(role), expected, `${role} menu should match the page list`)
@@ -99,6 +136,20 @@ try {
       }
     }
   }
+
+  for (const [role, forbiddenPath] of [
+    ['staff', '/frontend/admin/users.html'],
+    ['staff', '/frontend/admin/settings.html'],
+    ['principal', '/frontend/admin/add-asset.html'],
+    ['principal', '/frontend/staff/create-ticket.html'],
+    ['admin', '/frontend/staff/profile.html'],
+    ['admin', '/frontend/principal/profile.html']
+  ]) {
+    assert.strictEqual(getRedirect(role, forbiddenPath), '/frontend/error-403.html', `${role} should not access ${forbiddenPath}`)
+  }
+  assert.strictEqual(getRedirect(null, '/frontend/admin/dashboard.html'), '/frontend/login.html', 'protected pages should require a session')
+  assert.strictEqual(getRedirect('staff', '/frontend/index.html'), '/frontend/staff/dashboard.html', 'home should open the current role dashboard')
+  assert.strictEqual(getRedirect('principal', '/frontend/admin/reports.html'), null, 'reports should be shared with principals')
 
   const commonPages = [
     'login.html',
