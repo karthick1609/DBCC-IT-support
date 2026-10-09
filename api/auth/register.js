@@ -10,15 +10,27 @@ module.exports = async (req, res) => {
   const fullName = typeof body.fullName === 'string' ? body.fullName.trim() : ''
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
   const password = typeof body.password === 'string' ? body.password : ''
+  const departmentId = typeof body.departmentId === 'string' ? body.departmentId.trim() : ''
 
-  if (!fullName || fullName.length > 255 || !email || !password) {
-    return res.status(400).json({ success: false, message: 'Enter your name, email, and password.' })
+  if (!fullName || fullName.length > 255 || !email || !password || !departmentId) {
+    return res.status(400).json({ success: false, message: 'Enter your name, email, password, and department.' })
   }
   if (password.length < 8) {
     return res.status(400).json({ success: false, message: 'Password must be at least 8 characters.' })
   }
 
   try {
+    const { data: department, error: departmentError } = await supabaseService
+      .from('departments')
+      .select('id')
+      .eq('id', departmentId)
+      .eq('status', 'active')
+      .maybeSingle()
+    if (departmentError) throw departmentError
+    if (!department) {
+      return res.status(400).json({ success: false, message: 'Select a valid active department.' })
+    }
+
     const { data, error } = await createAuthClient().auth.signUp({
       email,
       password,
@@ -33,6 +45,7 @@ module.exports = async (req, res) => {
       auth_user_id: data.user.id,
       full_name: fullName,
       email,
+      department_id: department.id,
       role: 'staff',
       status: 'active'
     })

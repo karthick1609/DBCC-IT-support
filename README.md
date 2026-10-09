@@ -123,7 +123,7 @@ This project provides a centralized digital workflow for college IT management. 
 
 ## Accounts
 
-Users can create staff accounts from the registration link on the sign-in page. Admin and principal accounts must be provisioned by an administrator; public registration cannot assign elevated roles. Configure Supabase Auth email confirmation and the required Vercel environment variables before deployment.
+Users can create staff accounts from the registration link on the sign-in page and select their department. Public registration always assigns the staff role; admin and principal accounts must be provisioned by an administrator. Configure Supabase Auth email confirmation and the required Vercel environment variables before deployment.
 
 ## Project Structure
 

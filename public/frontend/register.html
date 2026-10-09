@@ -5,72 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>DBASC IT SUPPORT - Register</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-      body {
-        margin: 0;
-        font-family: Inter, "Segoe UI", sans-serif;
-        background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.15), transparent 32%),
-          linear-gradient(135deg, #eef6ff 0%, #eaf3ff 35%, #f7fbff 100%);
-        min-height: 100vh;
-      }
-      .login-shell {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 30px 20px;
-      }
-      .login-card {
-        width: min(100%, 460px);
-        border: 1px solid rgba(148, 163, 184, 0.25);
-        border-radius: 22px;
-        background: rgba(255,255,255,0.82);
-        backdrop-filter: blur(10px);
-        box-shadow: 0 22px 55px rgba(15, 23, 42, 0.12);
-        overflow: hidden;
-      }
-      .brand-strip {
-        background: linear-gradient(135deg, #1d4ed8, #2563eb 50%, #60a5fa);
-        padding: 22px 28px;
-        color: white;
-      }
-      .brand-strip h2 {
-        margin: 0;
-        font-weight: 800;
-        letter-spacing: 0.03em;
-      }
-      .brand-strip small { opacity: 0.9; }
-      .card-body { padding: 28px 30px 24px; }
-      .form-control {
-        border-radius: 12px;
-        border: 1px solid #d5deee;
-        padding: 0.8rem 0.9rem;
-      }
-      .form-control:focus {
-        border-color: #60a5fa;
-        box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.18);
-      }
-      .btn-primary {
-        border: none;
-        border-radius: 12px;
-        padding: 0.8rem 1rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #1d4ed8, #2563eb);
-      }
-      @media (max-width: 480px) {
-        .card-body { padding: 24px 20px; }
-      }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/frontend/assets/css/style.css?v=college-logo-9" rel="stylesheet">
   </head>
-  <body>
-    <div class="login-shell">
-      <div class="login-card">
-        <div class="brand-strip">
-          <h2>DBASC IT SUPPORT</h2>
-          <small>Asset &amp; Help Desk Management</small>
+  <body class="auth-page">
+    <div class="auth-shell">
+      <div class="auth-card">
+        <div class="auth-brand">
+          <div>
+            <span class="auth-brand-label"><i class="bi bi-activity"></i> IT OPERATIONS NETWORK</span>
+            <h1><i class="bi bi-diagram-3"></i> DBASC IT SUPPORT</h1>
+            <small>Asset &amp; Help Desk Management</small>
+          </div>
+          <svg class="auth-network-art" viewBox="0 0 360 220" role="img" aria-label="Connected devices in an IT support network">
+            <circle class="auth-network-signal" cx="180" cy="110" r="78"></circle>
+            <circle class="auth-network-signal" cx="180" cy="110" r="108"></circle>
+            <line x1="180" y1="110" x2="72" y2="54"></line>
+            <line x1="180" y1="110" x2="288" y2="54"></line>
+            <line x1="180" y1="110" x2="70" y2="170"></line>
+            <line x1="180" y1="110" x2="290" y2="170"></line>
+            <line x1="72" y1="54" x2="70" y2="170"></line>
+            <line x1="288" y1="54" x2="290" y2="170"></line>
+            <circle cx="72" cy="54" r="12"></circle>
+            <circle cx="288" cy="54" r="12"></circle>
+            <circle cx="70" cy="170" r="12"></circle>
+            <circle cx="290" cy="170" r="12"></circle>
+            <circle class="auth-network-core" cx="180" cy="110" r="22"></circle>
+          </svg>
+          <p class="auth-brand-copy">One connected workspace for your assets, support requests, and IT operations.</p>
         </div>
-        <div class="card-body">
-          <p class="text-muted mb-4">Create an account to access IT support.</p>
+        <div class="auth-card-body">
+          <h2 class="auth-form-heading">Create your account</h2>
+          <p>Create an account to access IT support.</p>
           <form id="register-form">
             <div class="mb-3">
               <label for="full-name" class="form-label">Full name</label>
@@ -79,6 +45,17 @@
             <div class="mb-3">
               <label for="email" class="form-label">Email</label>
               <input id="email" type="email" class="form-control" placeholder="you@example.com" autocomplete="email" required>
+            </div>
+            <div class="mb-3">
+              <label for="department" class="form-label">Department</label>
+              <select id="department" name="departmentId" class="form-select" required disabled>
+                <option value="">Loading departments…</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="role" class="form-label">Role</label>
+              <input id="role" class="form-control" value="Staff" readonly>
+              <div class="form-text">New accounts are registered as staff. Contact an administrator for a different role.</div>
             </div>
             <div class="mb-3">
               <label for="password" class="form-label">Password</label>
@@ -90,12 +67,13 @@
               <input id="confirm-password" type="password" class="form-control" autocomplete="new-password" minlength="8" required>
             </div>
             <div id="register-message" class="alert d-none" role="alert"></div>
-            <button type="submit" class="btn btn-primary w-100">Create account</button>
+            <button type="submit" class="btn btn-primary w-100" disabled>Create account</button>
           </form>
           <p class="text-center mt-4 mb-0">Already registered? <a href="/frontend/login.html">Sign in</a></p>
         </div>
       </div>
     </div>
     <script src="/frontend/assets/js/auth.js"></script>
+    <script src="/frontend/assets/js/logo.js?v=1"></script>
   </body>
 </html>

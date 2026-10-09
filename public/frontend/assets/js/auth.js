@@ -72,7 +72,12 @@
   }
 
   function setupTheme() {
-    const savedTheme = localStorage.getItem('dbasc_theme') || 'dark'
+    const themeVersion = 'network-theme-6'
+    if (localStorage.getItem('dbasc_theme_version') !== themeVersion) {
+      localStorage.setItem('dbasc_theme', 'light')
+      localStorage.setItem('dbasc_theme_version', themeVersion)
+    }
+    const savedTheme = localStorage.getItem('dbasc_theme') || 'light'
     applyTheme(savedTheme)
 
     const toggle = document.getElementById('theme-toggle')
@@ -135,6 +140,113 @@
     })
   }
 
+  function handleForgotPassword() {
+    const loginForm = document.getElementById('login-form')
+    const recoveryForm = document.getElementById('forgot-password-form')
+    const showRecovery = document.getElementById('show-forgot-password')
+    const backToLogin = document.getElementById('back-to-login')
+    if (!loginForm || !recoveryForm || !showRecovery || !backToLogin) return
+
+    const emailInput = document.getElementById('email')
+    const recoveryEmail = document.getElementById('recovery-email')
+    const messageBox = document.getElementById('recovery-message')
+
+    showRecovery.addEventListener('click', function () {
+      recoveryEmail.value = emailInput.value.trim()
+      loginForm.classList.add('d-none')
+      showRecovery.classList.add('d-none')
+      recoveryForm.classList.remove('d-none')
+      document.getElementById('login-error').classList.add('d-none')
+      recoveryEmail.focus()
+    })
+
+    backToLogin.addEventListener('click', function () {
+      recoveryForm.classList.add('d-none')
+      showRecovery.classList.remove('d-none')
+      loginForm.classList.remove('d-none')
+      messageBox.classList.add('d-none')
+    })
+
+    recoveryForm.addEventListener('submit', async function (event) {
+      event.preventDefault()
+      const submitButton = recoveryForm.querySelector('[type="submit"]')
+      submitButton.disabled = true
+      messageBox.className = 'alert d-none'
+
+      try {
+        const response = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: recoveryEmail.value.trim().toLowerCase() })
+        })
+        await readApiResponse(response, 'Request password reset')
+        messageBox.textContent = 'If an account exists for that email, a password reset link will be sent shortly.'
+        messageBox.className = 'alert alert-success'
+      } catch (error) {
+        messageBox.textContent = error.message
+        messageBox.className = 'alert alert-danger'
+      } finally {
+        submitButton.disabled = false
+      }
+    })
+  }
+
+  function handleResetPassword() {
+    const form = document.getElementById('reset-password-form')
+    if (!form) return
+
+    const messageBox = document.getElementById('reset-password-message')
+    const hash = new URLSearchParams(window.location.hash.slice(1))
+    const accessToken = hash.get('access_token')
+    const refreshToken = hash.get('refresh_token')
+    const recovery = hash.get('type') === 'recovery'
+    const submitButton = form.querySelector('[type="submit"]')
+
+    if (!accessToken || !refreshToken || !recovery) {
+      messageBox.textContent = 'This reset link is invalid or has expired. Request a new one from the login page.'
+      messageBox.className = 'alert alert-danger'
+      submitButton.disabled = true
+      return
+    }
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault()
+      const password = document.getElementById('new-password').value
+      const confirmPassword = document.getElementById('confirm-new-password').value
+      messageBox.className = 'alert d-none'
+
+      if (password !== confirmPassword) {
+        messageBox.textContent = 'Passwords do not match.'
+        messageBox.className = 'alert alert-danger'
+        return
+      }
+
+      submitButton.disabled = true
+      try {
+        const response = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            password
+          })
+        })
+        await readApiResponse(response, 'Reset password')
+        history.replaceState(null, '', window.location.pathname)
+        messageBox.textContent = 'Your password has been updated. You can now sign in.'
+        messageBox.className = 'alert alert-success'
+        form.reset()
+        submitButton.classList.add('d-none')
+      } catch (error) {
+        messageBox.textContent = error.message
+        messageBox.className = 'alert alert-danger'
+      } finally {
+        submitButton.disabled = false
+      }
+    })
+  }
+
   function saveUserSession(user, authSession) {
     if (!authSession || !authSession.access_token || !authSession.refresh_token) {
       throw new Error('Sign-in did not return a valid session. Check Supabase Auth configuration.')
@@ -150,7 +262,7 @@
     }
     saveSession(userSession)
     localStorage.setItem('dbasc_role', user.role)
-    localStorage.setItem('dbasc_theme', 'dark')
+    localStorage.setItem('dbasc_theme', 'light')
     window.location.href = '/frontend/index.html'
   }
 
@@ -166,8 +278,14 @@
       const email = document.getElementById('email').value.trim().toLowerCase()
       const password = document.getElementById('password').value
       const confirmPassword = document.getElementById('confirm-password').value
+      const departmentId = document.getElementById('department').value
 
       messageBox.classList.add('d-none')
+      if (!departmentId) {
+        messageBox.textContent = 'Select your department.'
+        messageBox.className = 'alert alert-danger'
+        return
+      }
       if (password !== confirmPassword) {
         messageBox.textContent = 'Passwords do not match.'
         messageBox.className = 'alert alert-danger'
@@ -178,7 +296,7 @@
       fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName: fullName, email: email, password: password })
+        body: JSON.stringify({ fullName: fullName, email: email, password: password, departmentId: departmentId })
       })
         .then(async function (response) {
           return readApiResponse(response, 'Create account')
@@ -200,6 +318,34 @@
           submitButton.disabled = false
         })
     })
+  }
+
+  async function loadRegistrationDepartments() {
+    const departmentSelect = document.getElementById('department')
+    if (!departmentSelect) return
+
+    const form = document.getElementById('register-form')
+    const submitButton = form.querySelector('[type="submit"]')
+    const messageBox = document.getElementById('register-message')
+
+    try {
+      const response = await fetch('/api/departments')
+      const result = await readApiResponse(response, 'Load departments')
+      const departments = Array.isArray(result.data) ? result.data : []
+      if (!departments.length) throw new Error('No active departments are available. Please contact an administrator.')
+
+      departmentSelect.replaceChildren(new Option('Select department', ''))
+      departments.forEach(department => {
+        departmentSelect.add(new Option(department.name, department.id))
+      })
+      departmentSelect.disabled = false
+      submitButton.disabled = false
+    } catch (error) {
+      departmentSelect.replaceChildren(new Option('Departments unavailable', ''))
+      messageBox.textContent = error.message
+      messageBox.className = 'alert alert-danger'
+      submitButton.disabled = true
+    }
   }
 
   function bindProtectedPages() {
@@ -246,9 +392,20 @@
         window.location.href = '/frontend/index.html'
         return
       }
-      if (loginForm) handleLoginSubmit()
-      if (registerForm) handleRegisterSubmit()
+      if (loginForm) {
+        handleLoginSubmit()
+        handleForgotPassword()
+      }
+      if (registerForm) {
+        handleRegisterSubmit()
+        loadRegistrationDepartments()
+      }
       setupTheme()
+      return
+    }
+
+    if (document.getElementById('reset-password-form')) {
+      handleResetPassword()
       return
     }
 

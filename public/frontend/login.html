@@ -5,99 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>DBASC IT SUPPORT - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-      body {
-        margin: 0;
-        font-family: Inter, "Segoe UI", sans-serif;
-        background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.15), transparent 32%),
-          linear-gradient(135deg, #eef6ff 0%, #eaf3ff 35%, #f7fbff 100%);
-        min-height: 100vh;
-      }
-      .login-shell {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 30px 20px;
-      }
-      .login-card {
-        width: min(100%, 460px);
-        border: 1px solid rgba(148, 163, 184, 0.25);
-        border-radius: 22px;
-        background: rgba(255,255,255,0.82);
-        backdrop-filter: blur(10px);
-        box-shadow: 0 22px 55px rgba(15, 23, 42, 0.12);
-        overflow: hidden;
-      }
-      .brand-strip {
-        background: linear-gradient(135deg, #1d4ed8, #2563eb 50%, #60a5fa);
-        padding: 22px 28px;
-        color: white;
-      }
-      .brand-strip h2 {
-        margin: 0;
-        font-weight: 800;
-        letter-spacing: 0.03em;
-      }
-      .brand-strip small {
-        opacity: 0.9;
-      }
-      .card-body {
-        padding: 28px 30px 24px;
-      }
-      .form-control {
-        border-radius: 12px;
-        border: 1px solid #d5deee;
-        padding: 0.8rem 0.9rem;
-      }
-      .form-control:focus {
-        border-color: #60a5fa;
-        box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.18);
-      }
-      .btn-primary {
-        border: none;
-        border-radius: 12px;
-        padding: 0.8rem 1rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #1d4ed8, #2563eb);
-      }
-      @media (max-width: 480px) {
-        .card-body { padding: 24px 20px; }
-      }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/frontend/assets/css/style.css?v=college-logo-9" rel="stylesheet">
   </head>
-  <body>
-    <div class="login-shell">
-      <div class="login-card">
-        <div class="brand-strip">
-          <h2>DBASC IT SUPPORT</h2>
-          <small>Asset & Help Desk Management</small>
-        </div>
-
-        <div class="card-body">
-          <p class="text-muted mb-4">Sign in to access your IT support dashboard.</p>
-
+  <body class="auth-page auth-login-page">
+    <main class="auth-login-shell">
+      <section class="auth-card auth-login-card" aria-labelledby="login-title">
+        <header class="login-brand">
+          <h1>DBASC IT SUPPORT</h1>
+          <p>Asset &amp; Help Desk Management</p>
+        </header>
+        <div class="auth-card-body login-form-body">
+          <p class="login-intro">Sign in to access your IT support dashboard.</p>
           <form id="login-form">
             <div class="mb-3">
               <label for="email" class="form-label">Email</label>
               <input id="email" type="email" class="form-control" placeholder="you@example.com" autocomplete="email" required>
             </div>
-
             <div class="mb-3">
               <label for="password" class="form-label">Password</label>
               <input id="password" type="password" class="form-control" placeholder="Enter password" autocomplete="current-password" required>
             </div>
-
             <div id="login-error" class="alert alert-danger d-none" role="alert"></div>
-
             <button type="submit" class="btn btn-primary w-100">Login</button>
           </form>
-
-          <p class="text-center mt-4 mb-0">New user? <a href="/frontend/register.html">Create an account</a></p>
+          <button id="show-forgot-password" class="forgot-password-link" type="button">Forgot password?</button>
+          <form id="forgot-password-form" class="d-none">
+            <p class="login-intro">Enter your account email and we’ll send you a password reset link.</p>
+            <div class="mb-3">
+              <label for="recovery-email" class="form-label">Email</label>
+              <input id="recovery-email" type="email" class="form-control" placeholder="you@example.com" autocomplete="email" required>
+            </div>
+            <div id="recovery-message" class="alert d-none" role="alert"></div>
+            <button type="submit" class="btn btn-primary w-100">Send reset link</button>
+            <button id="back-to-login" class="back-to-login" type="button">Back to login</button>
+          </form>
+          <p class="login-register-link">New user? <a href="/frontend/register.html">Create an account</a></p>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
 
     <script src="/frontend/assets/js/auth.js"></script>
+    <script src="/frontend/assets/js/logo.js?v=1"></script>
   </body>
 </html>

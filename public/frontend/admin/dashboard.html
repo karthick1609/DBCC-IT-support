@@ -6,33 +6,38 @@
     <title>Admin Dashboard - DBASC IT SUPPORT</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="/frontend/assets/css/style.css" rel="stylesheet">
+    <link href="/frontend/assets/css/style.css?v=college-logo-9" rel="stylesheet">
   </head>
   <body>
     <div class="topbar"><div class="container-fluid d-flex align-items-center"><h5 class="text-white mb-0">Admin Dashboard</h5></div></div>
     <div class="sidebar"><ul class="nav flex-column"><li class="nav-item"><a class="nav-link" href="/frontend/index.html">Home</a></li></ul></div>
-    <div class="content container-fluid">
-      <div class="row">
-        <div class="col-12">
-          <h3>Overview</h3>
+    <div class="content">
+      <div class="network-hero page-header">
+        <div>
+          <span class="network-eyebrow"><span class="user-dot"></span> IT OPERATIONS / ADMIN CONSOLE</span>
+          <h2>Operations Overview</h2>
+          <p>Monitor assets, service requests, and support activity.</p>
         </div>
+        <span class="badge-soft-primary"><i class="bi bi-diagram-3"></i> Live overview</span>
       </div>
-      <div class="row g-3">
-        <div class="col-md-3"><div class="card p-3"><small>Total Assets</small><h4 id="assets-total">—</h4></div></div>
-        <div class="col-md-3"><div class="card p-3"><small>Open Tickets</small><h4 id="tickets-open">—</h4></div></div>
-        <div class="col-md-3"><div class="card p-3"><small>In Progress</small><h4 id="tickets-progress">—</h4></div></div>
-        <div class="col-md-3"><div class="card p-3"><small>Resolved</small><h4 id="tickets-resolved">—</h4></div></div>
+      <div class="card-stats">
+        <div class="card p-3"><h6><i class="bi bi-pc-display-horizontal"></i> Total Assets</h6><h3 id="assets-total">—</h3></div>
+        <div class="card p-3"><h6><i class="bi bi-broadcast-pin"></i> Open Tickets</h6><h3 id="tickets-open">—</h3></div>
+        <div class="card p-3"><h6><i class="bi bi-arrow-repeat"></i> In Progress</h6><h3 id="tickets-progress">—</h3></div>
+        <div class="card p-3"><h6><i class="bi bi-check2-circle"></i> Resolved</h6><h3 id="tickets-resolved">—</h3></div>
       </div>
       <div id="dashboard-error" class="alert alert-danger d-none mt-3" role="alert"></div>
 
       <div class="row mt-4">
         <div class="col-lg-6">
-          <div class="card p-3">
+          <div class="card p-3 chart-panel">
+            <h5>Asset inventory</h5>
             <canvas id="chartAssets"></canvas>
           </div>
         </div>
         <div class="col-lg-6">
-          <div class="card p-3">
+          <div class="card p-3 chart-panel">
+            <h5>Ticket status</h5>
             <canvas id="chartTickets"></canvas>
           </div>
         </div>
@@ -52,8 +57,15 @@
           document.getElementById('tickets-open').textContent=statuses.Open||0
           document.getElementById('tickets-progress').textContent=statuses['In Progress']||0
           document.getElementById('tickets-resolved').textContent=statuses.Resolved||0
-          new Chart(document.getElementById('chartAssets'),{type:'doughnut',data:{labels:['Assets'],datasets:[{data:[data.assets_total],backgroundColor:['#0d6efd']}]}})
-          new Chart(document.getElementById('chartTickets'),{type:'bar',data:{labels:Object.keys(statuses),datasets:[{label:'Tickets',data:Object.values(statuses),backgroundColor:'#0d6efd'}]}})
+          const styles=getComputedStyle(document.body)
+          const primary=styles.getPropertyValue('--primary').trim()
+          const panel=styles.getPropertyValue('--panel').trim()
+          const text=styles.getPropertyValue('--text').trim()
+          const muted=styles.getPropertyValue('--muted').trim()
+          const line=styles.getPropertyValue('--line').trim()
+          const axes={ticks:{color:muted},grid:{color:line}}
+          new Chart(document.getElementById('chartAssets'),{type:'doughnut',data:{labels:['Assets'],datasets:[{data:[data.assets_total],backgroundColor:[primary],borderColor:panel,borderWidth:4}]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{color:text}}}}})
+          new Chart(document.getElementById('chartTickets'),{type:'bar',data:{labels:Object.keys(statuses),datasets:[{label:'Tickets',data:Object.values(statuses),backgroundColor:primary,borderRadius:6}]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{color:text}}},scales:{x:axes,y:Object.assign({},axes,{beginAtZero:true})}}})
         })
         .catch(error=>{
           const box=document.getElementById('dashboard-error')
@@ -61,5 +73,6 @@
           box.classList.remove('d-none')
         })
     </script>
+    <script src="/frontend/assets/js/logo.js?v=1"></script>
   </body>
   </html>

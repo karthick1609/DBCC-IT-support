@@ -3,22 +3,43 @@ const path = require('path')
 
 const loginPath = path.join(__dirname, '..', 'public', 'frontend', 'login.html')
 
+function findHtmlFiles(directory) {
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
+    const entryPath = path.join(directory, entry.name)
+    return entry.isDirectory()
+      ? findHtmlFiles(entryPath)
+      : entry.isFile() && entry.name.endsWith('.html') ? [entryPath] : []
+  })
+}
+
 try {
   const html = fs.readFileSync(loginPath, 'utf8')
   const hasLoginForm = html.includes('id="login-form"')
   const hasEmailInput = html.includes('type="email"')
   const hasPasswordInput = html.includes('type="password"')
   const hasRegisterLink = html.includes('/frontend/register.html')
+  const hasForgotPassword = html.includes('id="forgot-password-form"') && html.includes('id="show-forgot-password"')
   const hasNoDemoAccounts = !html.includes('Demo accounts')
 
-  if (!hasLoginForm || !hasEmailInput || !hasPasswordInput || !hasRegisterLink || !hasNoDemoAccounts) {
-    throw new Error('Login page is missing required fields, registration link, or demo-account cleanup.')
+  if (!hasLoginForm || !hasEmailInput || !hasPasswordInput || !hasRegisterLink || !hasForgotPassword || !hasNoDemoAccounts) {
+    throw new Error('Login page is missing required fields, recovery flow, registration link, or demo-account cleanup.')
   }
+
+  const frontendRoot = path.join(__dirname, '..', 'public', 'frontend')
+  const frontendPages = findHtmlFiles(frontendRoot)
+  const pagesMissingLogo = frontendPages.filter(page => !fs.readFileSync(page, 'utf8').includes('/frontend/assets/js/logo.js'))
+  if (pagesMissingLogo.length) {
+    throw new Error(`Frontend pages are missing the college logo: ${pagesMissingLogo.map(page => path.relative(frontendRoot, page)).join(', ')}`)
+  }
+  const logoPath = path.join(frontendRoot, 'assets', 'images', 'college-logo.png')
+  if (!fs.existsSync(logoPath)) throw new Error('The college logo image is missing.')
 
   const registerPath = path.join(__dirname, '..', 'public', 'frontend', 'register.html')
   const registerHtml = fs.readFileSync(registerPath, 'utf8')
-  if (!registerHtml.includes('id="register-form"') || !registerHtml.includes('id="full-name"') || !registerHtml.includes('id="confirm-password"')) {
-    throw new Error('Registration page is missing required fields.')
+  if (!registerHtml.includes('id="register-form"') || !registerHtml.includes('id="full-name"') ||
+      !registerHtml.includes('id="confirm-password"') || !registerHtml.includes('id="department"') ||
+      !registerHtml.includes('id="role"')) {
+    throw new Error('Registration page is missing required fields, department, or role.')
   }
 
   const authPath = path.join(__dirname, '..', 'public', 'frontend', 'assets', 'js', 'auth.js')
@@ -44,11 +65,16 @@ try {
     throw new Error('Asset and ticket screens must persist and load data through their protected APIs.')
   }
 
-  const apiPaths = ['login.js', 'register.js', 'refresh.js'].map(file =>
+  const apiPaths = ['login.js', 'register.js', 'refresh.js', 'forgot-password.js', 'reset-password.js'].map(file =>
     path.join(__dirname, '..', 'api', 'auth', file)
   )
+  apiPaths.push(path.join(__dirname, '..', 'api', 'departments', 'index.js'))
   for (const apiPath of apiPaths) {
     if (!fs.existsSync(apiPath)) throw new Error(`Missing authentication endpoint: ${path.basename(apiPath)}`)
+  }
+  const resetPage = fs.readFileSync(path.join(__dirname, '..', 'public', 'frontend', 'reset-password.html'), 'utf8')
+  if (!resetPage.includes('id="reset-password-form"') || !resetPage.includes('id="new-password"')) {
+    throw new Error('The password reset page is missing its update form.')
   }
 
   const vercelConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'vercel.json'), 'utf8'))

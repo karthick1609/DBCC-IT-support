@@ -2,7 +2,6 @@
 
 Prerequisites:
 - Node.js 18+ and npm
-- Vercel CLI (optional but recommended)
 - A Supabase project with credentials
 
 Steps:
@@ -18,6 +17,7 @@ npm install
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY` (server-side secret; never expose it in frontend code)
+   - `APP_URL` (public app origin used for password recovery links, for example `http://localhost:3000` locally and your HTTPS site origin in production; Vercel deployments can use `VERCEL_URL`)
 
 3. Initialize Supabase schema (run these in Supabase SQL Editor):
 
@@ -33,14 +33,16 @@ npm install
 
 7. To remove the demo profile rows from an existing database, run `database/remove-demo-users.sql` in the Supabase SQL Editor.
 
-8. Start local dev server (Vercel emulates serverless functions)
+8. Start the local app server (serves the frontend and runs the API handlers)
 
 ```powershell
-npx vercel dev
+npm run dev
 ```
 
-9. Open http://localhost:3000 and the frontend at `/frontend/index.html`.
+9. Open http://localhost:3000/frontend/login.html.
+
+10. For password recovery, add the `APP_URL/frontend/reset-password.html` URL to Supabase Auth's allowed redirect URLs.
 
 Troubleshooting:
-- If `vercel dev` is not available, install with `npm i -g vercel`.
+- Ensure port 3000 is available before starting the server.
 - Ensure Supabase Auth email confirmation is configured as desired and `SUPABASE_SERVICE_ROLE_KEY` is **never** exposed publicly.

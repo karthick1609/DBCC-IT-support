@@ -5,18 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Staff Dashboard - DBASC IT SUPPORT</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/frontend/assets/css/style.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/frontend/assets/css/style.css?v=college-logo-9" rel="stylesheet">
   </head>
   <body>
     <div class="topbar"><div class="container-fluid d-flex align-items-center"><h5 class="text-white mb-0">Staff Dashboard</h5></div></div>
     <div class="sidebar"></div>
-    <div class="content container-fluid">
-      <h3 id="staff-welcome">Welcome</h3>
-      <div class="row g-3">
-        <div class="col-md-3"><div class="card p-3">My Open Tickets<br><strong id="staff-open">—</strong></div></div>
-        <div class="col-md-3"><div class="card p-3">In Progress<br><strong id="staff-progress">—</strong></div></div>
-        <div class="col-md-3"><div class="card p-3">Resolved<br><strong id="staff-resolved">—</strong></div></div>
-        <div class="col-md-3"><div class="card p-3">Closed<br><strong id="staff-closed">—</strong></div></div>
+    <div class="content">
+      <div class="network-hero page-header">
+        <div>
+          <span class="network-eyebrow"><span class="user-dot"></span> IT OPERATIONS / SERVICE DESK</span>
+          <h2 id="staff-welcome">Welcome</h2>
+          <p>Manage support requests and follow their progress.</p>
+        </div>
+        <span class="badge-soft-primary"><i class="bi bi-headset"></i> Staff workspace</span>
+      </div>
+      <div class="card-stats">
+        <div class="card p-3"><h6><i class="bi bi-broadcast-pin"></i> My Open Tickets</h6><h3 id="staff-open">—</h3></div>
+        <div class="card p-3"><h6><i class="bi bi-arrow-repeat"></i> In Progress</h6><h3 id="staff-progress">—</h3></div>
+        <div class="card p-3"><h6><i class="bi bi-check2-circle"></i> Resolved</h6><h3 id="staff-resolved">—</h3></div>
+        <div class="card p-3"><h6><i class="bi bi-archive"></i> Closed</h6><h3 id="staff-closed">—</h3></div>
       </div>
       <div id="dashboard-error" class="alert alert-danger d-none mt-3" role="alert"></div>
       <div class="mt-4"><a class="btn btn-primary" href="/frontend/staff/create-ticket.html">+ Create New Ticket</a></div>
@@ -41,5 +49,6 @@
           box.classList.remove('d-none')
         })
     </script>
+    <script src="/frontend/assets/js/logo.js?v=1"></script>
   </body>
   </html>

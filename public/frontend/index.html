@@ -6,9 +6,9 @@
     <title>DBASC IT SUPPORT - Home</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="/frontend/assets/css/style.css" rel="stylesheet">
+    <link href="/frontend/assets/css/style.css?v=college-logo-9" rel="stylesheet">
   </head>
-<body class="dark">
+<body>
     <div class="topbar">
       <div class="topbar-left">
         <div class="navbar-brand">
@@ -41,29 +41,30 @@
 
     <div class="content">
       <div class="container-fluid">
-        <div class="page-header">
+        <div class="page-header network-hero">
           <div>
+            <span class="network-eyebrow"><span class="user-dot"></span> IT OPERATIONS / SERVICE DESK</span>
             <h2>Welcome to DBASC IT SUPPORT</h2>
             <p>Manage support requests and IT resources from one place.</p>
           </div>
-          <span class="badge-soft-primary">System Overview</span>
+          <span class="badge-soft-primary"><i class="bi bi-diagram-3"></i> System Overview</span>
         </div>
 
         <div class="card card-stats">
           <div class="card p-3">
-            <h6>Total Assets</h6>
+            <h6><i class="bi bi-pc-display-horizontal"></i> Total Assets</h6>
             <h3 id="total-assets">—</h3>
           </div>
           <div class="card p-3">
-            <h6>Open Tickets</h6>
+            <h6><i class="bi bi-broadcast-pin"></i> Open Tickets</h6>
             <h3 id="open-tickets">—</h3>
           </div>
           <div class="card p-3">
-            <h6>In Progress</h6>
+            <h6><i class="bi bi-arrow-repeat"></i> In Progress</h6>
             <h3 id="inprogress">—</h3>
           </div>
           <div class="card p-3">
-            <h6>Resolved</h6>
+            <h6><i class="bi bi-check2-circle"></i> Resolved</h6>
             <h3 id="resolved">—</h3>
           </div>
         </div>
@@ -90,5 +91,6 @@
           box.classList.remove('d-none')
         })
     </script>
+    <script src="/frontend/assets/js/logo.js?v=1"></script>
   </body>
   </html>
