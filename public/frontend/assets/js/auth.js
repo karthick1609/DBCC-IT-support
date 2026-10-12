@@ -54,6 +54,14 @@
     return fetch(url, requestOptions)
   }
 
+  function getDashboardSummary(data) {
+    if (!data || typeof data !== 'object' || !data.tickets_by_status ||
+        typeof data.tickets_by_status !== 'object' || Array.isArray(data.tickets_by_status)) {
+      throw new Error('The dashboard report is incomplete. Refresh the page; if the problem continues, contact an administrator.')
+    }
+    return data
+  }
+
   function clearSession() {
     localStorage.removeItem(AUTH_KEY)
     localStorage.removeItem('dbasc_role')
@@ -101,6 +109,45 @@
       principal: '/frontend/principal/dashboard.html'
     }
     return dashboards[role] || '/frontend/login.html'
+  }
+
+  function animateLoginSuccess(role) {
+    const logo = document.querySelector('.college-logo-auth')
+    if (!logo) {
+      window.location.replace(getDashboardPath(role))
+      return
+    }
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const bounds = logo.getBoundingClientRect()
+    const transition = document.createElement('div')
+    transition.className = 'login-transition-overlay'
+    if (reduceMotion) transition.classList.add('reduced-motion')
+    transition.setAttribute('aria-hidden', 'true')
+
+    const animatedLogo = logo.cloneNode()
+    animatedLogo.className = 'login-transition-logo'
+    animatedLogo.style.left = `${bounds.left + bounds.width / 2}px`
+    animatedLogo.style.top = `${bounds.top + bounds.height / 2}px`
+    animatedLogo.style.width = `${bounds.width}px`
+    animatedLogo.style.height = `${bounds.height}px`
+    animatedLogo.style.setProperty('--start-x', `${bounds.left + bounds.width / 2}px`)
+    animatedLogo.style.setProperty('--start-y', `${bounds.top + bounds.height / 2}px`)
+    const zoomScale = Math.hypot(window.innerWidth, window.innerHeight) / Math.min(bounds.width, bounds.height) * 1.5
+    animatedLogo.style.setProperty('--zoom-scale', String(zoomScale))
+    animatedLogo.style.setProperty('--zoom-pre-scale', String(zoomScale * 0.35))
+    transition.append(animatedLogo)
+    document.body.append(transition)
+
+    let redirected = false
+    const redirect = () => {
+      if (redirected) return
+      redirected = true
+      window.location.replace(getDashboardPath(role))
+    }
+    animatedLogo.addEventListener('animationend', redirect, { once: true })
+    window.requestAnimationFrame(() => transition.classList.add('is-animating'))
+    window.setTimeout(redirect, reduceMotion ? 900 : 2000)
   }
 
   const PAGE_ROLES = {
@@ -305,7 +352,8 @@
           return readApiResponse(response, 'Sign in')
         })
         .then(function (result) {
-          saveUserSession(result.user, result.session)
+          const session = saveUserSession(result.user, result.session)
+          animateLoginSuccess(session.role)
         })
         .catch(function (error) {
           errorBox.textContent = error.message
@@ -443,7 +491,7 @@
     saveSession(userSession)
     localStorage.setItem('dbasc_role', user.role)
     localStorage.setItem('dbasc_theme', 'light')
-    window.location.href = '/frontend/index.html'
+    return userSession
   }
 
   function handleRegisterSubmit() {
@@ -483,7 +531,8 @@
         })
         .then(function (result) {
           if (result.user) {
-            saveUserSession(result.user, result.session)
+            const session = saveUserSession(result.user, result.session)
+            window.location.href = getDashboardPath(session.role)
             return
           }
           messageBox.textContent = 'Account created. Check your email for a confirmation link, then sign in.'
@@ -588,5 +637,5 @@
   })
 
   enforcePageAccess()
-  window.DBASCAuth = { getSession, clearSession, authorizedFetch }
+  window.DBASCAuth = { getSession, clearSession, authorizedFetch, getDashboardSummary }
 })();

@@ -138,6 +138,12 @@ This project provides a centralized digital workflow for college IT management. 
 
 Users can create staff accounts from the registration link on the sign-in page and select their department. Public registration always assigns the staff role; admin and principal accounts must be provisioned by an administrator. Configure Supabase Auth email confirmation and the required Vercel environment variables before deployment.
 
+### Daily Admin Email Report
+
+Vercel sends a report to `karthick@dbcc.edu.in` every day at 8:00 AM India Standard Time. The email summarizes tickets created on the previous IST calendar day, current ticket totals by status, and current asset totals by status. Set `CRON_SECRET`, `RESEND_API_KEY`, and a verified Resend sender address in the Vercel project environment. Use `RESEND_FROM_EMAIL` for the sender, or the existing `ADMIN_EMAIL` setting. Set `DAILY_REPORT_EMAIL` only if the report recipient needs to be changed. The scheduled function uses the existing Supabase service-role credentials.
+
+To test the endpoint manually, send a `GET` request to `/api/reports/daily-email` with an `Authorization: Bearer <CRON_SECRET>` header in a deployment where these environment variables are configured.
+
 ## Project Structure
 
 The project includes the following main areas:

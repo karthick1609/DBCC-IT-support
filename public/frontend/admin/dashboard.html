@@ -45,13 +45,13 @@
 
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/frontend/assets/js/auth.js?v=role-pages-2"></script>
+    <script src="/frontend/assets/js/auth.js?v=dashboard-summary-guard-1"></script>
     <script>
       DBASCAuth.authorizedFetch('/api/reports?type=dashboard-summary')
         .then(async response=>{
           const result=await response.json()
           if(!response.ok||!result.success) throw new Error(result.message||'Unable to load dashboard.')
-          const data=result.data
+          const data=DBASCAuth.getDashboardSummary(result.data)
           document.getElementById('assets-total').textContent=data.assets_total
           const statuses=data.tickets_by_status
           document.getElementById('tickets-open').textContent=statuses.Open||0

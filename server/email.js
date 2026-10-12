@@ -10,7 +10,7 @@ async function sendEmail(to, subject, html) {
   }
   if (!resend) resend = new Resend(process.env.RESEND_API_KEY)
   return resend.emails.send({
-    from: process.env.ADMIN_EMAIL || 'no-reply@example.com',
+    from: process.env.RESEND_FROM_EMAIL || process.env.ADMIN_EMAIL || 'no-reply@example.com',
     to,
     subject,
     html

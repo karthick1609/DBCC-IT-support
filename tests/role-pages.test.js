@@ -86,6 +86,28 @@ function renderNavigation(role) {
   })
 }
 
+function getDashboardSummary(data) {
+  const document = {
+    body: { classList: { toggle() {} } },
+    addEventListener() {},
+    getElementById() {
+      return null
+    },
+    querySelector() {
+      return null
+    }
+  }
+  const window = { location: { pathname: '/frontend/login.html', replace() {} } }
+  const localStorage = {
+    getItem() {
+      return null
+    },
+    removeItem() {}
+  }
+  vm.runInNewContext(authScript, { document, localStorage, window, fetch() {} })
+  return window.DBASCAuth.getDashboardSummary(data)
+}
+
 function getRedirect(role, pathname) {
   const session = role
     ? { authProvider: 'supabase', name: 'Test User', role, accessToken: 'test-token', expiresAt: Math.floor(Date.now() / 1000) + 3600 }
@@ -150,6 +172,16 @@ try {
   assert.strictEqual(getRedirect(null, '/frontend/admin/dashboard.html'), '/frontend/login.html', 'protected pages should require a session')
   assert.strictEqual(getRedirect('staff', '/frontend/index.html'), '/frontend/staff/dashboard.html', 'home should open the current role dashboard')
   assert.strictEqual(getRedirect('principal', '/frontend/admin/reports.html'), null, 'reports should be shared with principals')
+  assert.deepStrictEqual(
+    Object.keys(getDashboardSummary({ tickets_by_status: {} })),
+    ['tickets_by_status'],
+    'empty ticket totals should be a valid dashboard summary'
+  )
+  assert.throws(
+    () => getDashboardSummary({}),
+    /dashboard report is incomplete/i,
+    'missing ticket totals should produce an actionable error instead of a TypeError'
+  )
 
   const commonPages = [
     'login.html',

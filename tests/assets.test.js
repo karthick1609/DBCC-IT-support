@@ -85,6 +85,18 @@ async function run() {
   assert.strictEqual(deniedResponse.statusCode, 403)
   assert.deepStrictEqual(roleChecks[1], { method: 'POST', roles: ['admin'] })
 
+  const frontendRoot = require('path').join(__dirname, '..', 'public', 'frontend')
+  const assetsHtml = require('fs').readFileSync(require('path').join(frontendRoot, 'admin', 'assets.html'), 'utf8')
+  const importHtml = require('fs').readFileSync(require('path').join(frontendRoot, 'admin', 'import-csv.html'), 'utf8')
+  const templatePath = require('path').join(frontendRoot, 'assets', 'templates', 'asset-import-template.csv')
+  const templateColumns = require('fs').readFileSync(templatePath, 'utf8').trim().split(',')
+  const importApi = require('fs').readFileSync(require('path').join(__dirname, '..', 'api', 'assets', 'import.js'), 'utf8')
+  const supportedColumns = ['asset_code', 'asset_name', 'brand', 'model', 'serial_number', 'processor', 'ram', 'storage', 'operating_system', 'purchase_date', 'warranty_end', 'status', 'condition']
+  assert.deepStrictEqual(templateColumns, supportedColumns)
+  assert(importApi.includes('row.asset_code') && importApi.includes('row.asset_name'))
+  assert(assetsHtml.includes('Download CSV Template') && assetsHtml.includes('/frontend/assets/templates/asset-import-template.csv'))
+  assert(importHtml.includes('Download CSV Template') && importHtml.includes('Required columns:'))
+
   console.log('Staff asset read-only access validation passed.')
 }
 

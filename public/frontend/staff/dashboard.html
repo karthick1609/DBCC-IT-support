@@ -29,7 +29,7 @@
       <div id="dashboard-error" class="alert alert-danger d-none mt-3" role="alert"></div>
       <div class="mt-4"><a class="btn btn-primary" href="/frontend/staff/create-ticket.html">+ Create New Ticket</a></div>
     </div>
-    <script src="/frontend/assets/js/auth.js?v=role-pages-2"></script>
+    <script src="/frontend/assets/js/auth.js?v=dashboard-summary-guard-1"></script>
     <script>
       const session=DBASCAuth.getSession()
       if(session) document.getElementById('staff-welcome').textContent=`Welcome, ${session.name}`
@@ -37,7 +37,8 @@
         .then(async response=>{
           const result=await response.json()
           if(!response.ok||!result.success) throw new Error(result.message||'Unable to load dashboard.')
-          const statuses=result.data.tickets_by_status
+          const summary=DBASCAuth.getDashboardSummary(result.data)
+          const statuses=summary.tickets_by_status
           document.getElementById('staff-open').textContent=statuses.Open||0
           document.getElementById('staff-progress').textContent=statuses['In Progress']||0
           document.getElementById('staff-completed').textContent=statuses.Completed||statuses.Resolved||0

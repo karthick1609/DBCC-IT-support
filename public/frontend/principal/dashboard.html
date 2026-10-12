@@ -33,12 +33,13 @@
       </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/frontend/assets/js/auth.js?v=role-pages-2"></script>
+    <script src="/frontend/assets/js/auth.js?v=dashboard-summary-guard-1"></script>
     <script>
       Promise.all([
         DBASCAuth.authorizedFetch('/api/reports?type=dashboard-summary').then(async r=>{const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to load summary.');return d.data}),
         DBASCAuth.authorizedFetch('/api/reports?type=tickets-by-department').then(async r=>{const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to load departments.');return d.data})
       ]).then(([summary,departments])=>{
+        DBASCAuth.getDashboardSummary(summary)
         document.getElementById('principal-assets').textContent=summary.assets_total
         document.getElementById('principal-tickets').textContent=summary.tickets_total
         document.getElementById('principal-open').textContent=summary.tickets_by_status.Open||0

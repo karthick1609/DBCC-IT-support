@@ -47,6 +47,19 @@ try {
   if (!authScript.includes('/api/auth/login') || !authScript.includes('/api/auth/register') || !authScript.includes("authProvider !== 'supabase'") || !authScript.includes('returned an invalid response') || authScript.includes('Admin@123')) {
     throw new Error('Authentication must use the server API and must not contain demo credentials.')
   }
+  if (!authScript.includes('animateLoginSuccess(session.role)') || !authScript.includes('getDashboardPath(role)')) {
+    throw new Error('Successful login must animate the college logo before opening the role dashboard.')
+  }
+  const stylesheet = fs.readFileSync(path.join(frontendRoot, 'assets', 'css', 'style.css'), 'utf8')
+  if (!stylesheet.includes('@keyframes login-logo-zoom') ||
+      !stylesheet.includes('@keyframes login-logo-reduced-zoom') ||
+      !stylesheet.includes('top: 50vh;') ||
+      !stylesheet.includes('left: 50vw;') ||
+      !stylesheet.includes('@media (prefers-reduced-motion: reduce)') ||
+      !authScript.includes('if (reduceMotion) transition.classList.add(\'reduced-motion\')') ||
+      !authScript.includes('requestAnimationFrame(() => transition.classList.add(\'is-animating\'))')) {
+    throw new Error('The login logo must animate into view on successful sign-in, including when reduced motion is preferred.')
+  }
 
   const usersPath = path.join(__dirname, '..', 'public', 'frontend', 'admin', 'users.html')
   const usersHtml = fs.readFileSync(usersPath, 'utf8')

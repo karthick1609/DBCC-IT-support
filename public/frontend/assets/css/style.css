@@ -175,6 +175,107 @@ a { text-decoration: none; }
   margin: 16px auto;
 }
 
+.login-transition-overlay {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.login-transition-logo {
+  position: absolute;
+  z-index: 1;
+  border: 2px solid rgba(147, 197, 253, 0.9);
+  border-radius: 50%;
+  background: #fff;
+  object-fit: contain;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.6);
+}
+
+.login-transition-overlay.is-animating {
+  animation: login-transition-backdrop 1800ms ease-in forwards;
+}
+
+.login-transition-overlay.is-animating .login-transition-logo {
+  animation: login-logo-zoom 1800ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.login-transition-overlay.is-animating.reduced-motion {
+  animation-duration: 650ms;
+}
+
+.login-transition-overlay.is-animating.reduced-motion .login-transition-logo {
+  animation-name: login-logo-reduced-zoom;
+  animation-duration: 650ms;
+}
+
+@keyframes login-transition-backdrop {
+  0% { opacity: 0; background: #07172c; }
+  28% { opacity: 1; background: #07172c; }
+  100% { opacity: 1; background: #07172c; }
+}
+
+@keyframes login-logo-zoom {
+  0% {
+    top: var(--start-y);
+    left: var(--start-x);
+    opacity: 0;
+    filter: drop-shadow(0 0 0 rgba(96, 165, 250, 0));
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  12% {
+    top: var(--start-y);
+    left: var(--start-x);
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  42% {
+    top: 50vh;
+    left: 50vw;
+    opacity: 1;
+    filter: drop-shadow(0 0 36px rgba(96, 165, 250, 0.95));
+    transform: translate(-50%, -50%) scale(1.35);
+  }
+  72% {
+    top: 50vh;
+    left: 50vw;
+    opacity: 1;
+    filter: drop-shadow(0 0 48px rgba(96, 165, 250, 0.9));
+    transform: translate(-50%, -50%) scale(var(--zoom-pre-scale));
+  }
+  100% {
+    top: 50vh;
+    left: 50vw;
+    opacity: 1;
+    filter: drop-shadow(0 0 60px rgba(96, 165, 250, 0.85));
+    transform: translate(-50%, -50%) scale(var(--zoom-scale));
+  }
+}
+
+@keyframes login-logo-reduced-zoom {
+  0% {
+    top: var(--start-y);
+    left: var(--start-x);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  45% {
+    top: 50vh;
+    left: 50vw;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+  100% {
+    top: 50vh;
+    left: 50vw;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .college-logo {
     animation: none;
